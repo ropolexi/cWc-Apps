@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cWc Page Publisher</title>
+<style>
+  :root{--bg:#f6f4ef;--card:#fff;--ink:#1f1d1a;--muted:#78736b;--line:#e3ded4;--accent:#8a5a2b;--ok:#2e7d32;--bad:#b3261e}
+  @media (prefers-color-scheme:dark){:root{--bg:#161412;--card:#201d1a;--ink:#ece7df;--muted:#9a948a;--line:#34302b;--accent:#d3a066;--ok:#7bc67e;--bad:#ff8a80}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+  h1{margin:0 0 4px;font-size:1.5rem} h2{font-size:1.05rem;margin:0 0 10px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:.92rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  header{border-bottom:1px solid var(--line);background:var(--card)}
+  a{color:inherit}
+ .hd{max-width:820px;margin:0 auto;padding:18px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .brand{font-size:1.4rem;font-weight:700;text-decoration:none}
+  .menu{display:flex;gap:18px;font:.92rem system-ui,sans-serif}
+  .menu a{text-decoration:none;color:var(--muted)} .menu a:hover,.menu a.on{color:var(--accent)}
+  main{max-width:820px;margin:0 auto;padding:24px 16px 64px}
+  label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+  input,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+  textarea{font:13px/1.45 ui-monospace,Consolas,monospace;min-height:300px;resize:vertical;tab-size:2}
+  button{font:inherit;padding:8px 16px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .08s ease,filter .08s ease}
+  button:hover:not(:disabled){filter:brightness(1.08)}
+  button:active:not(:disabled){transform:scale(.98)}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  iframe{width:100%;height:340px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .mono{font:.8rem ui-monospace,Consolas,monospace;word-break:break-all}
+  .muted{color:var(--muted);font-size:.85rem}
+  #log{font:.82rem/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;max-height:240px;overflow:auto}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  input[type=radio],input[type=checkbox]{width:auto;margin:0}
+  label.opt{display:inline-flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:.95rem;cursor:pointer}
+  .grid3{display:grid;grid-template-columns:1fr 1fr;gap:16px} @media(max-width:860px){.grid3{grid-template-columns:1fr}}
+  .pill{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;font-size:.72rem;border:1px solid var(--accent);color:var(--accent)}
+  .pill.chunk{border-color:#2e7d32;color:#2e7d32;background:rgba(46,125,50,.08)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:500;font-size:.8rem}
+  td.act{white-space:nowrap;text-align:right}
+  td.act button{padding:4px 10px;font-size:.85rem;margin-left:6px}
+  .tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.75rem;border:1px solid var(--line)}
+  .tag.vis{color:var(--ok);border-color:var(--ok)} .tag.hid{color:var(--muted)}
+  .banner{display:none;margin:0 0 10px;padding:8px 12px;border-radius:8px;border:1px solid var(--accent);font-size:.9rem}
+  .banner.on{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .imgBox{margin-top:12px}
+  .imgRow{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line,#e3ded3)}
+  .imgRow img{width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid #d9d2c5;background:#fff}
+  .imgRow .grow{flex:1;min-width:0;font-size:.85rem}
+  .imgRow .mono{word-break:break-all}
+  .chunkNotice{padding:8px 12px;border-radius:8px;background:rgba(138,90,43,.09);border:1px solid var(--accent);font-size:.85rem;margin:10px 0}
+</style>
+</head>
+<body>
+  <header><div class="hd"><a class="brand" id="brand" href="#/">cWc Page Publisher</a>
+  <nav class="menu"><a href="./../user-blog" id="mHome">Blog</a><a href="./../cwc-paid-posts" id="getpaid">Get Paid</a><a href="./../publish" id="publishLink">Publish</a></nav></div></header>
+
+<div class="wrap">
+  
+  <p class="sub">Publishes rich blog articles to the chainWare network. <b>Bulky HTML, Markdown, and embedded images are automatically chunked and stored on Layer 2</b>, leaving only lightweight metadata on the feed. The blog reader streams the bulky content only when a reader clicks the post.</p>
+
+  <div class="card">
+    <h2>1 · Connection and wallet</h2>
+    <div class="grid">
+      <div>
+        <label>L1 host</label><input id="l1host" value="l1-13-2.diamondthumb.com">
+        <label>L2 host <span class="muted">(blank = same host with l1 → l2)</span></label><input id="l2host" placeholder="auto">
+      </div>
+      <div>
+        <div id="idBox">
+          <label>Recommended: your keys stay in the separate cWc Identity window.</label>
+          <div class="row" style="margin-top:0"><button id="connectId">Sign in with cWc Identity</button></div>
+        </div>
+        <details style="margin-top:12px"><summary class="muted">Advanced: type recovery words here instead (less safe)</summary>
+        <label>Recovery words (12, 15 or 24). Used only in this tab, never saved.</label>
+        <input id="seed" type="password" autocomplete="off" placeholder="your seed phrase">
+        <div class="row" style="margin-top:10px"><button id="connect">Connect with recovery words</button></div></details>
+      </div>
+    </div>
+    <p class="muted" id="conn" style="margin:12px 0 0">Not connected.</p>
+  </div>
+
+  <div class="card">
+    <h2>2 · Write the page</h2>
+    <div class="banner" id="banner"><span id="bannerText"></span><button class="ghost" id="cancelEdit">Cancel edit</button></div>
+    <div class="row" style="margin:2px 0 6px"><span class="muted">Write in:</span>
+      <label class="opt"><input type="radio" name="fmt" value="html" checked> HTML</label>
+      <label class="opt"><input type="radio" name="fmt" value="markdown"> Markdown</label></div>
+    <label>Title (shown in your blog's list)</label>
+    <input id="title" placeholder="Sum Calculator" maxlength="160">
+    <div class="grid3">
+      <div><label>Category <span class="muted">(one per page)</span></label>
+        <input id="category" list="catlist" placeholder="Tools" maxlength="40" autocomplete="off"><datalist id="catlist"></datalist></div>
+      <div><label>Tags <span class="muted">(comma separated, up to 8)</span></label>
+        <input id="tags" placeholder="math, calculator" maxlength="200" autocomplete="off"></div>
+    </div>
+    <label>Summary <span class="muted">(shown in the fast-loading blog list; blank = taken from the page)</span></label>
+    <input id="summary" maxlength="200" placeholder="A small calculator that adds two numbers.">
+    <label>Teaser text shown on the main cWc feed <span class="muted">(plain text, short)</span></label>
+    <input id="teaser" placeholder="auto: New page: &lt;title&gt;" maxlength="400">
+    <div style="margin:10px 0 0"><label class="opt"><input type="checkbox" id="isAbout"> This is my <b>About</b> page (shown under the About link, not in the post list)</label></div>
+    <div class="grid" style="margin-top:6px">
+      <div>
+        <label><span id="editLbl">HTML</span> <span class="muted" id="size"></span></label>
+        <textarea id="html" spellcheck="false"></textarea>
+      </div>
+      <div>
+        <label>Live preview (sandboxed)</label>
+        <iframe id="preview" sandbox="allow-scripts"></iframe>
+      </div>
+    </div>
+    <div class="imgBox">
+      <label>Images <span class="muted">(compressed automatically; embedded into the chunked document)</span></label>
+      <div class="row" style="margin-top:4px"><input type="file" id="imgFile" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none">
+        <button type="button" class="ghost" id="imgAdd">Add image…</button><span class="muted" id="imgMsg"></span></div>
+      <div id="imgList"></div>
+    </div>
+    <div class="chunkNotice" id="chunkNotice">
+      ℹ️ <b>Chunked L2 Storage:</b> Documents exceeding 12 KB (or containing images) are automatically split into L2 chunks and mapped via a media manifest. The blog list will only load this post's title, category, and summary; the reader streams the full document on-demand when clicked.
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button id="publish" disabled>Publish to chain</button>
+      <button id="sample" class="ghost">Load sample</button>
+      <span class="muted">Posts are permanent on-chain. Check the preview first.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">3 · Manage posts</h2><button class="ghost" id="reload" disabled>Reload list</button></div>
+    <p class="muted" style="margin:0 0 8px" id="mgrNote">Connect your wallet to load your pages.</p>
+    <table id="mgr" style="display:none"><thead><tr><th>Title</th><th>Category</th><th>Storage</th><th>First published</th><th>Versions</th><th>Status</th><th></th></tr></thead><tbody id="mgrBody"></tbody></table>
+  </div>
+
+  <div class="card"><h2>Progress</h2><div id="log" class="muted">Waiting.</div></div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const RPC_PATH = "/chainware-rpc", L1_FEE_ATOMIC = "400000000";
+
+/* ---------- CHUNKED MEDIA CONSTANTS (as defined in chainWare v12 feed) ---------- */
+const MEDIA_CHUNK_BYTES_DEFAULT = 192 * 1024; // 192 KB
+const MEDIA_CHUNK_BYTES_MIN = 24 * 1024;      // 24 KB minimum fallback if HTTP 413
+const MEDIA_MAP_PAGE_ENTRIES = 48;            // 48 chunks per map page
+const BULKY_DOC_INLINE_THRESHOLD = 12 * 1024; // 12 KB threshold for chunking
+
+const app = { wallet:null, l1:null, l2:null, reqId:1 };
+
+/* ---------- helper encoders & hashes ---------- */
+function b64(bytes){let s="";const a=new Uint8Array(bytes);for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode(...a.subarray(i,Math.min(i+0x8000,a.length)));return btoa(s)}
+function unb64(v){const s=atob(String(v||"")),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+function hex(bytes){return Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,"0")).join("")}
+function fromHex(v){const s=String(v).replace(/^0x/i,"");const a=new Uint8Array(s.length/2);for(let i=0;i<s.length;i++)a[i]=parseInt(s.slice(i*2,i*2+2),16);return a}
+function concat(...arr){const n=arr.reduce((s,a)=>s+a.length,0),out=new Uint8Array(n);let o=0;for(const a of arr){out.set(a,o);o+=a.length}return out}
+function b64url(v){let s=String(v).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return unb64(s)}
+const field=(o,...n)=>{for(const k of n)if(o&&o[k]!==undefined&&o[k]!==null)return o[k]};
+function randomID(){return hex(crypto.getRandomValues(new Uint8Array(20)))}
+async function sha256HexBytes(bytes){return hex(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)))}
+
+function goJSONEscapeText(t){return String(t).replace(/[<>&\u2028\u2029]/g,c=>({"<":"\\u003c",">":"\\u003e","&":"\\u0026","\u2028":"\\u2028","\u2029":"\\u2029"})[c])}
+function goJSONStringify(v){const e=JSON.stringify(v);return goJSONEscapeText(e===undefined?"null":e)}
+function canon(v){
+  if(v===undefined)return "null";
+  if(v===null||typeof v!=="object")return goJSONStringify(v);
+  if(Array.isArray(v))return `[${v.map(x=>x===undefined?"null":canon(x)).join(",")}]`;
+  const keys=Object.keys(v).filter(k=>v[k]!==undefined).sort();
+  return `{${keys.map(k=>`${goJSONStringify(k)}:${canon(v[k])}`).join(",")}}`;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function log(msg, cls=""){const l=$("log");l.classList.remove("muted");const d=document.createElement("div");if(cls)d.className=cls;d.textContent=`${new Date().toLocaleTimeString()}  ${msg}`;l.appendChild(d);l.scrollTop=l.scrollHeight}
+
+/* ---------- cWc Identity ---------- */
+const IDENTITY_URL = "";
+const idOrigin = (() => { try { return new URL(IDENTITY_URL).origin; } catch { return ""; } })();
+let idWin = null, idSeq = 0;
+const idPending = new Map();
+function idOpen(){
+  if (!idWin || idWin.closed) {
+    idWin = window.open(IDENTITY_URL, "cwcIdentity", "width=480,height=700");
+    if (!idWin) throw Error("The identity window was blocked. Allow pop-ups for this page and try again.");
+  } else { try { idWin.focus(); } catch {} }
+}
+addEventListener("message", e => {
+  if (!idWin || e.source !== idWin || e.origin !== idOrigin) return;
+  const d = e.data; if (!d || d.cwcIdentity !== 1 || d.id == null) return;
+  const p = idPending.get(d.id); if (!p) return;
+  idPending.delete(d.id); d.ok ? p.res(d.result) : p.rej(Error(d.error || "Identity error"));
+});
+setInterval(() => { if (idWin && idWin.closed && idPending.size) { for (const [, p] of idPending) p.rej(Error("The identity window was closed. Sign in again.")); idPending.clear(); } }, 600);
+function idSend(method, params, timeoutMs){
+  return new Promise((res, rej) => {
+    const id = ++idSeq; let tm = null;
+    idPending.set(id, { res: v => { clearTimeout(tm); res(v); }, rej: e => { clearTimeout(tm); rej(e); } });
+    if (timeoutMs) tm = setTimeout(() => { idPending.delete(id); const e = Error("timeout"); e.timeout = true; rej(e); }, timeoutMs);
+    try { idWin.postMessage({ cwcIdentity: 1, id, method, params }, idOrigin); } catch (e) { idPending.delete(id); rej(e); }
+  });
+}
+async function idHandshake(){
+  const t0 = Date.now();
+  while (Date.now() - t0 < 25000) {
+    if (!idWin || idWin.closed) throw Error("The identity window was closed.");
+    try { await idSend("hello", {}, 700); return; }
+    catch (e) { if (!e.timeout) throw e; }
+  }
+  throw Error("The identity window did not answer. Ensure IDENTITY_URL is reachable.");
+}
+async function idCall(method, params){
+  if (!idWin || idWin.closed) throw Error("The identity window is closed. Click 'Sign in with cWc Identity' again.");
+  try { idWin.focus(); } catch {}
+  return idSend(method, params);
+}
+
+/* ---------- wallet ---------- */
+async function walletFromSeed(seed){
+  const phrase=String(seed||"").trim().toLowerCase().split(/\s+/).filter(Boolean).join(" ");
+  const n=phrase?phrase.split(" ").length:0;
+  if(![12,15,24].includes(n))throw Error("Recovery words must contain exactly 12, 15, or 24 words.");
+  const material=await crypto.subtle.importKey("raw",enc.encode(phrase),"PBKDF2",false,["deriveBits"]);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-512",salt:enc.encode("chainWare Social v5 wallet seed"),iterations:210000},material,256);
+  const pkcs8=concat(fromHex("302e020100300506032b657004220420"),new Uint8Array(bits));
+  const extractable=await crypto.subtle.importKey("pkcs8",pkcs8,{name:"Ed25519"},true,["sign"]);
+  const jwk=await crypto.subtle.exportKey("jwk",extractable);
+  const pub=b64url(jwk.x);
+  const digest=new Uint8Array(await crypto.subtle.digest("SHA-256",pub));
+  const address="cw"+hex(digest.slice(0,20));
+  const privateKey=await crypto.subtle.importKey("pkcs8",pkcs8,{name:"Ed25519"},false,["sign"]);
+  return{address,publicKey:b64(pub),privateKey};
+}
+
+/* ---------- RPC ---------- */
+async function rpc(base,method,params={}){
+  const r=await fetch(base.replace(/\/+$/,"")+"/",{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify({jsonrpc:"2.0",id:app.reqId++,method,params}),cache:"no-store"});
+  const t=await r.text();
+  if(!r.ok){
+    const err = Error(r.status===413?"RPC request exceeded the web proxy body limit (HTTP 413).":`RPC HTTP ${r.status}: ${t.slice(0,180)}`);
+    err.httpStatus = r.status;
+    throw err;
+  }
+  const o=JSON.parse(t);if(o.error)throw Error(o.error.data||o.error.message||"RPC error");return o.result;
+}
+async function query(base,path){const r=await rpc(base,"abci_query",{path,data:"",prove:false}),x=r?.response||{};if(Number(x.code||0)!==0)throw Error(x.log||`Query failed: ${path}`);return x.value?JSON.parse(dec.decode(unb64(x.value))):null}
+async function connectLayer(base,expected){
+  const [status,cap,state]=await Promise.all([rpc(base,"status"),query(base,"/capabilities"),query(base,"/state")]);
+  const layer=String(cap?.Layer||state?.Layer||"");
+  if(layer!==expected)throw Error(`${base} reports ${layer||"unknown layer"}, expected ${expected}.`);
+  return{base,cap,state,chainID:String(cap?.ChainID||state?.ChainID||status?.node_info?.network||"")};
+}
+const protocolVersion=l=>Number(field(l?.cap,"ProtocolVersion","protocol_version")||field(l?.state,"ProtocolVersion","protocol_version")||0);
+const isL1=l=>l===app.l1;
+const readAccount=async(layer,address)=>await query(layer.base,`/account/${address}`)||{balance:"0",nonce:0};
+
+/* ---------- signing and broadcasting (CometBFT broadcast_tx_commit) ---------- */
+async function signTx(layer,type,payload){
+  const acct=await readAccount(layer,app.wallet.address);
+  const nonce=Number(acct?.nonce??acct?.Nonce??0)+1;
+  const doc={version:1,chain_id:layer.chainID,type,gas:isL1(layer)?L1_FEE_ATOMIC:"0",signer:app.wallet.address,nonce,payload:JSON.parse(canon(payload)),public_key:app.wallet.publicKey};
+  if(app.wallet.remote){const r=await idCall("sign",{doc});return{...doc,signature:r.signature}}
+  const sig=await crypto.subtle.sign({name:"Ed25519"},app.wallet.privateKey,enc.encode(goJSONStringify(doc)));
+  return{...doc,signature:b64(sig)};
+}
+
+async function broadcast(layer,type,payload){
+  const tx=await signTx(layer,type,payload);
+  const raw=enc.encode(JSON.stringify(tx)),encoded=b64(raw);
+  const digest=new Uint8Array(await crypto.subtle.digest("SHA-256",raw));
+  const localHash=hex(digest).toUpperCase(),hashB64=b64(digest);
+  const isDup=v=>/already exists|already in cache|duplicate|tx already exists|already registered/i.test(String(v?.message||v||""));
+  const isTimeout=v=>/timed out|timeout|wait.*block|deadline|aborted|connection|network/i.test(String(v?.message||v||""));
+
+  async function findCommitted(){
+    for(const hash of [hashB64,"0x"+localHash,localHash]){
+      try{
+        const c=await rpc(layer.base,"tx",{hash,prove:false});
+        const res=c?.tx_result||c?.deliver_tx||{};
+        if(Number(res.code||0)!==0){const e=Error(res.log||"Committed transaction failed");e.committedFailure=true;throw e}
+        const h = Number(c?.height||0);
+        if(h > 0) return{hash:localHash,height:h};
+      }catch(e){
+        if(e?.committedFailure)throw e;
+        if(/not found/i.test(String(e?.message||e)))continue;
+      }
+    }
+    return null;
+  }
+
+  // 1. Primary method: broadcast_tx_commit (synchronous block inclusion per v11 API spec)
+  try{
+    const res = await rpc(layer.base, "broadcast_tx_commit", { tx: encoded });
+    
+    // Check mempool check_tx code
+    const checkCode = Number(res?.check_tx?.code || 0);
+    if(checkCode !== 0){
+      const logMsg = res?.check_tx?.log || res?.check_tx?.info || `${type} failed CheckTx (code ${checkCode})`;
+      if(!isDup(logMsg)){ const e = Error(logMsg); e.checkTx = true; throw e; }
+    }
+
+    // Check block deliver_tx / tx_result code
+    const deliverResult = res?.deliver_tx || res?.tx_result || {};
+    const deliverCode = Number(deliverResult.code || 0);
+    if(deliverCode !== 0){
+      const logMsg = deliverResult.log || deliverResult.info || `${type} failed DeliverTx (code ${deliverCode})`;
+      const e = Error(logMsg); e.committedFailure = true; throw e;
+    }
+
+    const height = Number(res?.height || 0);
+    if(height > 0){
+      return { hash: localHash, height };
+    }
+  }catch(err){
+    if(err.checkTx || err.committedFailure) throw err;
+    if(!isDup(err) && !isTimeout(err)){
+      if(err.message && !/not found/i.test(err.message)) throw err;
+    }
+  }
+
+  // 2. Fallback verification: poll for committed block if broadcast_tx_commit timed out
+  const immediate = await findCommitted();
+  if(immediate) return immediate;
+
+  // Poll for up to 35 seconds
+  const t0 = Date.now();
+  while(Date.now() - t0 < 35000){
+    const hit = await findCommitted();
+    if(hit) return hit;
+    await sleep(800);
+  }
+
+  // If node doesn't index transactions, inspect status for latest block height
+  try{
+    const st = await rpc(layer.base, "status", {});
+    const curH = Number(st?.sync_info?.latest_block_height || 0);
+    if(curH > 0) return { hash: localHash, height: curH };
+  }catch{}
+
+  return { hash: localHash, height: 0, pending: true };
+}
+
+/* Graceful L2 pointer receipt verification: confirms if available, never throws fatal error */
+async function waitForAcceptedPointerReceipt(l2TxHash, maxMs=8000){
+  const wanted=String(l2TxHash).replace(/^0x/i,"").toUpperCase(),t=Date.now();
+  while(Date.now()-t<maxMs){
+    try{
+      const all=await query(app.l2.base,"/l1-receipts");
+      for(const r of Object.values(all||{})){
+        const kind=String(field(r,"kind","Kind")||"").toUpperCase();
+        const subj=String(field(r,"subject_l2_tx_hash","SubjectL2TxHash")||"").replace(/^0x/i,"").toUpperCase();
+        if(kind==="POINTER"&&subj===wanted&&String(field(r,"status","Status")||"").toUpperCase()==="ACCEPTED"){
+          log("L2 receipt quorum confirmed.", "ok");
+          return r;
+        }
+      }
+    }catch{
+      // /l1-receipts query not present on this validator - skip gracefully
+      return null;
+    }
+    await sleep(800);
+  }
+  // Do NOT throw error: L1 pointer has already committed and is the authoritative public index!
+  return null;
+}
+
+async function ensureRegistered(){
+  let cur=null;
+  try{ cur=await query(app.l1.base,`/wallet-registration/${app.wallet.address}`); }catch{}
+  const isReg = cur && (cur.registered === true || String(cur.registered).toLowerCase() === "true" || Number(cur.registered_height || cur.RegisteredHeight || 0) > 0);
+  if(isReg) return;
+  log("Registering wallet on L1…");
+  try{
+    await broadcast(app.l1,"REGISTER_WALLET",{});
+  }catch(e){
+    if(!/already exists|already registered|duplicate/i.test(e.message)) throw e;
+  }
+}
+
+async function l2Funded(){
+  let bal = 0n;
+  try{ bal = BigInt(String(field(app.wallet.l2Account,"balance","Balance")||"0")); }catch{}
+  if(bal > 0n) return bal;
+  try{
+    const allFundings = await query(app.l1.base, "/storage-fundings");
+    for(const f of Object.values(allFundings||{})){
+      if(String(field(f,"wallet","Wallet")||"")===app.wallet.address && String(field(f,"l2_chain_id","L2ChainID")||"")===app.l2.chainID){
+        bal += BigInt(String(field(f,"amount","Amount")||"0"));
+      }
+    }
+  }catch{}
+  return bal;
+}
+
+/* ---------- BULKY DATA ENGINE: storeGenericMedia & assembleMediaRefBlob ---------- */
+function is413(e){
+  return Number(e?.httpStatus||0)===413 || /\b413\b|request entity too large|body limit/i.test(String(e?.message||e));
+}
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      try { out[i] = await fn(items[i], i); } catch (e) { out[i] = { error: e }; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
+async function storeGenericMedia(blob, meta={}, onProgress=()=>{}){
+  if(!blob || !Number(blob.size)) throw Error("Media/document file is empty.");
+  const l2Types = app.l2?.cap?.TransactionTypes || app.l2?.cap?.transaction_types || [];
+  if(l2Types.length > 0 && !l2Types.includes("STORE")) throw Error("Layer 2 does not support STORE transactions.");
+
+  const mediaType = String(meta.media_type || "document");
+  const mime = String(meta.mime || blob.type || "application/octet-stream");
+  const name = String(meta.name || `${mediaType}-${randomID()}`);
+  const scope = String(meta.scope || "");
+
+  onProgress({ stage:"hashing", done:0, total:1, label:"Hashing entire document (SHA-256)…" });
+  const wholeBytes = new Uint8Array(await blob.arrayBuffer());
+  const fileSHA256 = await sha256HexBytes(wholeBytes);
+
+  let chunkBytes = MEDIA_CHUNK_BYTES_DEFAULT;
+  let mediaID = "";
+  let chunks = [];
+
+  while(true){
+    mediaID = randomID();
+    chunks = [];
+    const total = Math.max(1, Math.ceil(blob.size / chunkBytes));
+    let retrySmaller = false;
+
+    for(let i=0; i<total; i++){
+      const begin = i * chunkBytes;
+      const finish = Math.min(blob.size, begin + chunkBytes);
+      const bytes = new Uint8Array(await blob.slice(begin, finish).arrayBuffer());
+      const chunkSHA256 = await sha256HexBytes(bytes);
+      const key = `media:chunk:${mediaID}:${String(i).padStart(6, "0")}`;
+
+      onProgress({ stage:"chunk", done:i, total, label:`Uploading chunk ${i+1} of ${total} (${(bytes.length/1024).toFixed(0)} KB)…` });
+
+      try {
+        const stored = await broadcast(app.l2, "STORE", {
+          key,
+          content: {
+            kind: "media_chunk",
+            version: 2,
+            media_id: mediaID,
+            media_type: mediaType,
+            scope,
+            index: i,
+            total,
+            bytes: bytes.byteLength,
+            sha256: chunkSHA256,
+            data: b64(bytes)
+          }
+        });
+
+        chunks.push({
+          index: i,
+          key,
+          bytes: bytes.byteLength,
+          sha256: chunkSHA256,
+          l2_tx_hash: stored.hash,
+          l2_height: stored.height
+        });
+      } catch(e) {
+        if(i === 0 && is413(e) && chunkBytes > MEDIA_CHUNK_BYTES_MIN) {
+          chunkBytes = Math.max(MEDIA_CHUNK_BYTES_MIN, Math.floor(chunkBytes / 2));
+          retrySmaller = true;
+          onProgress({ stage:"resize", done:0, total:1, label:`RPC proxy body limit detected · retrying with smaller ${(chunkBytes/1024).toFixed(0)} KB chunks…` });
+          break;
+        }
+        throw e;
+      }
+    }
+
+    if(retrySmaller) continue;
+    break;
+  }
+
+  // Group chunks into map pages only if chunks exceed 48 entries
+  const needsMapPages = chunks.length > MEDIA_MAP_PAGE_ENTRIES;
+  const mapPages = [];
+
+  if(needsMapPages){
+    const pageCount = Math.ceil(chunks.length / MEDIA_MAP_PAGE_ENTRIES);
+    for(let pageIndex = 0; pageIndex < pageCount; pageIndex++){
+      const pageChunks = chunks.slice(pageIndex * MEDIA_MAP_PAGE_ENTRIES, (pageIndex + 1) * MEDIA_MAP_PAGE_ENTRIES);
+      const pageKey = `media:map:${mediaID}:${String(pageIndex).padStart(5, "0")}`;
+      const pageContent = {
+        kind: "media_map_page",
+        version: 2,
+        media_id: mediaID,
+        media_type: mediaType,
+        page_index: pageIndex,
+        page_count: pageCount,
+        first_chunk: pageChunks[0]?.index ?? 0,
+        chunk_count: pageChunks.length,
+        chunks: pageChunks
+      };
+
+      onProgress({ stage:"map", done:pageIndex, total:pageCount, label:`Writing chunk index map ${pageIndex+1} of ${pageCount}…` });
+      const stored = await broadcast(app.l2, "STORE", { key:pageKey, content:pageContent });
+      mapPages.push({
+        index: pageIndex,
+        key: pageKey,
+        first_chunk: pageContent.first_chunk,
+        chunk_count: pageChunks.length,
+        l2_tx_hash: stored.hash,
+        l2_height: stored.height
+      });
+    }
+  }
+
+  // Write root manifest
+  const manifestKey = `media:manifest:${mediaID}`;
+  const manifest = {
+    kind: "media_manifest",
+    version: 2,
+    media_id: mediaID,
+    media_type: mediaType,
+    mime,
+    name,
+    size: Number(blob.size || 0),
+    file_sha256: fileSHA256,
+    chunk_bytes: chunkBytes,
+    chunk_count: chunks.length,
+    map_page_entries: MEDIA_MAP_PAGE_ENTRIES,
+    map_page_count: mapPages.length,
+    map_pages: mapPages.length ? mapPages : undefined,
+    chunks: !needsMapPages ? chunks : undefined,
+    scope
+  };
+
+  onProgress({ stage:"manifest", done:0, total:1, label:"Writing root document manifest…" });
+  const manifestStored = await broadcast(app.l2, "STORE", { key:manifestKey, content:manifest });
+  onProgress({ stage:"manifest", done:1, total:1, label:"Document manifest committed to Layer 2." });
+
+  return {
+    kind: "media_ref",
+    version: 2,
+    media_id: mediaID,
+    media_type: mediaType,
+    mime,
+    name,
+    size: Number(blob.size || 0),
+    file_sha256: fileSHA256,
+    manifest_key: manifestKey,
+    manifest_tx_hash: manifestStored.hash,
+    manifest_height: manifestStored.height
+  };
+}
+
+async function assembleMediaRefBlob(ref, onProgress=()=>{}){
+  if(!ref?.manifest_key) throw Error("Media reference has no manifest key.");
+  onProgress("Fetching document manifest…", 5);
+  const manifestRecord = await query(app.l2.base, `/content/${ref.manifest_key}`);
+  const manifest = manifestRecord?.content ?? manifestRecord?.Content ?? manifestRecord ?? {};
+  if(manifest?.kind !== "media_manifest") throw Error("Invalid document manifest on Layer 2.");
+
+  let entries = [];
+  if(Array.isArray(manifest.chunks)){
+    entries = manifest.chunks.slice();
+  } else if(Array.isArray(manifest.map_pages)){
+    const pages = manifest.map_pages.slice().sort((a,b)=>Number(a.index)-Number(b.index));
+    const pageResults = await mapLimit(pages, 6, async(pageRef, index)=>{
+      onProgress(`Fetching document index page ${index+1}/${pages.length}…`, 10 + Math.floor(20 * (index+1)/pages.length));
+      const record = await query(app.l2.base, `/content/${pageRef.key}`);
+      const page = record?.content ?? record?.Content ?? record ?? {};
+      if(page?.kind !== "media_map_page") throw Error(`Invalid chunk map ${index+1}.`);
+      return page.chunks || [];
+    });
+    entries = pageResults.flat();
+  } else {
+    throw Error("Document manifest contains no chunk index.");
+  }
+
+  entries.sort((a,b)=>Number(a.index)-Number(b.index));
+  if(Number(manifest.chunk_count || 0) && entries.length !== Number(manifest.chunk_count)){
+    throw Error(`Chunk map incomplete (${entries.length}/${manifest.chunk_count}).`);
+  }
+
+  const parts = await mapLimit(entries, 6, async(entry, index)=>{
+    onProgress(`Downloading document chunk ${index+1}/${entries.length}…`, 30 + Math.floor(55 * (index+1)/entries.length));
+    const record = await query(app.l2.base, `/content/${entry.key}`);
+    const content = record?.content ?? record?.Content ?? record ?? {};
+    if(content?.kind !== "media_chunk") throw Error(`Invalid chunk ${index+1}.`);
+    const data = content?.data ?? content?.Data;
+    if(!data) throw Error(`Missing data in chunk ${index+1}.`);
+    const bytes = unb64(data);
+    if(Number(entry.bytes || 0) && bytes.byteLength !== Number(entry.bytes)) throw Error(`Chunk ${index+1} size mismatch.`);
+    const got = await sha256HexBytes(bytes);
+    if(entry.sha256 && got.toLowerCase() !== String(entry.sha256).toLowerCase()) throw Error(`Chunk ${index+1} hash mismatch.`);
+    return bytes;
+  });
+
+  onProgress("Verifying reconstructed document…", 90);
+  const blob = new Blob(parts, { type: manifest.mime || ref.mime || "application/json" });
+  if(Number(manifest.size || 0) && blob.size !== Number(manifest.size)) throw Error("Reconstructed document size mismatch.");
+  if(manifest.file_sha256){
+    const fullHash = await sha256HexBytes(new Uint8Array(await blob.arrayBuffer()));
+    if(fullHash.toLowerCase() !== String(manifest.file_sha256).toLowerCase()) throw Error("Complete document hash check failed.");
+  }
+  onProgress("Document verified.", 100);
+  return { blob, manifest, mediaType: String(manifest.media_type || ref.media_type || "").toLowerCase() };
+}
+
+/* ---------- Markdown to HTML parser ---------- */
+function mdEscape(s){return s.replace(/&(?!#?\w+;)/g,"&amp;").replace(/<(?!\/?[a-zA-Z][^<>]*>|!--)/g,"&lt;")}
+function mdUrl(u,img){u=String(u).trim();if(/^(javascript|vbscript):/i.test(u))return "#";if(!img&&/^data:/i.test(u))return "#";return u.replace(/"/g,"%22")}
+function mdCode(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function mdInline(s){
+  const codes=[];
+  s=s.replace(/(`+)([\s\S]*?[^`])\1(?!`)/g,(m,t,c)=>{codes.push(mdCode(c.trim()));return "\u0000"+(codes.length-1)+"\u0000"});
+  s=mdEscape(s);
+  s=s.replace(/!\[([^\]]*)\]\(\s*([^)\s]+)(?:\s+"([^"]*)")?\s*\)/g,(m,a,u,t)=>`<img src="${mdUrl(u,1)}" alt="${a.replace(/"/g,"&quot;")}"${t?` title="${t}"`:""}>`);
+  s=s.replace(/\[([^\]]+)\]\(\s*([^)\s]+)(?:\s+"([^"]*)")?\s*\)/g,(m,a,u,t)=>`<a href="${mdUrl(u)}"${t?` title="${t}"`:""}>${a}</a>`);
+  s=s.replace(/\*\*(?!\s)([^*\n]*?[^*\s])\*\*|__(?!\s)([^_\n]*?[^_\s])__/g,(m,a,b)=>`<strong>${a||b}</strong>`);
+  s=s.replace(/(^|[^*\w])\*(?!\s)([^*\n]*?[^*\s])\*(?!\w)/g,"$1<em>$2</em>").replace(/(^|[^_\w])_(?!\s)([^_\n]*?[^_\s])_(?!\w)/g,"$1<em>$2</em>");
+  s=s.replace(/~~(?!\s)([^~\n]*?[^~\s])~~/g,"<del>$1</del>");
+  s=s.replace(/ {2,}\n/g,"<br>\n");
+  return s.replace(/\u0000(\d+)\u0000/g,(m,i)=>`<code>${codes[i]}</code>`);
+}
+function mdBlocks(lines){
+  const out=[],blank=l=>/^\s*$/.test(l);
+  const LIST=/^(\s*)([-*+]|\d{1,9}[.)])\s+(.*)$/, FENCE=/^\s{0,3}(```|~~~)\s*([\w-]*)\s*$/, HEAD=/^\s{0,3}(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/;
+  const HR=/^\s{0,3}([-*_])(\s*\1){2,}\s*$/, QUOTE=/^\s{0,3}>/, HTMLB=/^\s*<(\/?[a-zA-Z]|!--)/, SEP=/^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+  const startsBlock=(l)=>FENCE.test(l)||HEAD.test(l)||HR.test(l)||QUOTE.test(l)||LIST.test(l)||HTMLB.test(l);
+  const cells=l=>l.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(c=>c.trim());
+  let i=0;
+  while(i<lines.length){
+    const l=lines[i];let m;
+    if(blank(l)){i++;continue}
+    if((m=l.match(FENCE))){const buf=[];i++;while(i<lines.length&&!lines[i].trim().startsWith(m[1])){buf.push(lines[i]);i++}i++;
+      out.push(`<pre><code${m[2]?` class="language-${m[2]}"`:""}>${mdCode(buf.join("\n"))}</code></pre>`);continue}
+    if((m=l.match(HEAD))){out.push(`<h${m[1].length}>${mdInline(m[2])}</h${m[1].length}>`);i++;continue}
+    if(HR.test(l)){out.push("<hr>");i++;continue}
+    if(QUOTE.test(l)){const buf=[];while(i<lines.length&&QUOTE.test(lines[i])){buf.push(lines[i].replace(/^\s{0,3}>\s?/,""));i++}out.push(`<blockquote>${mdBlocks(buf)}</blockquote>`);continue}
+    if(l.includes("|")&&i+1<lines.length&&SEP.test(lines[i+1])&&lines[i+1].includes("-")){
+      const head=cells(l),al=cells(lines[i+1]).map(c=>/^:-*:$/.test(c)?"center":/-:$/.test(c)?"right":/^:-/.test(c)?"left":"");
+      i+=2;const rows=[];while(i<lines.length&&!blank(lines[i])&&lines[i].includes("|")){rows.push(cells(lines[i]));i++}
+      const td=(t,c,k)=>`<${t}${al[k]?` style="text-align:${al[k]}"`:""}>${mdInline(c||"")}</${t}>`;
+      out.push(`<table><thead><tr>${head.map((c,k)=>td("th",c,k)).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${head.map((_,k)=>td("td",r[k],k)).join("")}</tr>`).join("")}</tbody></table>`);continue}
+    if((m=l.match(LIST))){
+      const base=m[1].length,ordered=/\d/.test(m[2][0]),start=ordered?parseInt(m[2],10):1,items=[];let loose=false;
+      while(i<lines.length){
+        const lm=lines[i].match(LIST);
+        if(lm&&lm[1].length<=base+1&&/\d/.test(lm[2][0])===ordered){
+          const cont=lm[1].length+lm[2].length+1,buf=[lm[3]];i++;
+          while(i<lines.length){
+            const x=lines[i];
+            if(blank(x)){let j=i;while(j<lines.length&&blank(lines[j]))j++;
+              if(j<lines.length&&(/^\s+\S/.test(lines[j])&&lines[j].match(/^\s*/)[0].length>base)){loose=true;buf.push("");i=j;continue}
+              if(j<lines.length&&(lines[j].match(LIST)||[])[1]!==undefined&&lines[j].match(LIST)[1].length<=base+1&&/\d/.test(lines[j].match(LIST)[2][0])===ordered){loose=true}
+              break}
+            const xm=x.match(LIST);
+            if(xm&&xm[1].length<=base+1)break;
+            if(!/^\s/.test(x)&&startsBlock(x))break;
+            buf.push(x.slice(Math.min(x.match(/^\s*/)[0].length,cont)));i++;
+          }
+          items.push(buf);
+        }else break;
+      }
+      const tag=ordered?"ol":"ul";
+      out.push(`<${tag}${ordered&&start!==1?` start="${start}"`:""}>${items.map(b=>{let h=mdBlocks(b);if(!loose)h=h.replace(/^<p>([\s\S]*?)<\/p>/,"$1");return `<li>${h}</li>`}).join("")}</${tag}>`);continue}
+    if(HTMLB.test(l)){const buf=[];while(i<lines.length&&!blank(lines[i])){buf.push(lines[i]);i++}out.push(buf.join("\n"));continue}
+    const buf=[l];i++;
+    while(i<lines.length&&!blank(lines[i])&&!startsBlock(lines[i])&&!(lines[i].includes("|")&&i+1<lines.length&&SEP.test(lines[i+1]))){buf.push(lines[i]);i++}
+    out.push(`<p>${mdInline(buf.join("\n"))}</p>`);
+  }
+  return out.join("\n");
+}
+function mdToHtml(src){return mdBlocks(String(src||"").replace(/\r\n?/g,"\n").split("\n"))}
+
+/* ---------- reading existing pages ---------- */
+async function loadL2Raw(p){
+  const hash=String(field(p,"l2_tx_hash","L2TxHash")||"").replace(/^0x/i,"").toUpperCase();
+  if(!hash)throw Error("pointer without L2 hash");
+  for(const h of [b64(fromHex(hash)),"0x"+hash]){
+    try{const r=await rpc(app.l2.base,"tx",{hash:h,prove:false});if(r?.tx)return unb64(r.tx)}catch{}
+  }
+  const height=Number(field(p,"l2_height","L2Height")||0);
+  if(height<1)throw Error("L2 tx not found");
+  const blk=await rpc(app.l2.base,"block",{height:String(height)});
+  for(const e of blk?.block?.data?.txs||[]){const raw=unb64(e),d=new Uint8Array(await crypto.subtle.digest("SHA-256",raw));if(hex(d).toUpperCase()===hash)return raw}
+  throw Error("L2 tx not found in block");
+}
+const recCache=new Map();
+function cleanImgs(m){
+  const out={};
+  if(m&&typeof m==="object"&&!Array.isArray(m))for(const [k,v] of Object.entries(m).slice(0,12))
+    if(/^img\d{1,3}$/.test(k)&&typeof v==="string"&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(v))out[k]=v;
+  return out;
+}
+
+// Light resolve: retrieves metadata only! Does NOT download bulky chunks during listing!
+async function resolveRec(p){
+  const hash=String(field(p,"l2_tx_hash","L2TxHash")||"").replace(/^0x/i,"").toUpperCase();
+  if(recCache.has(hash))return recCache.get(hash);
+  let out={ok:false,hash};
+  try{
+    const raw=JSON.parse(dec.decode(await loadL2Raw(p)));
+    if(String(raw.signer||"")===app.wallet.address){
+      let c=raw?.payload?.content;
+      if(c==null){try{const rec=await query(app.l2.base,`/content/${raw?.payload?.key||""}`);c=rec?.content??rec?.Content}catch{}}
+      const height=Number(p.created_height||p.CreatedHeight||0),l2Height=Number(field(p,"l2_height","L2Height")||0);
+      if(c&&typeof c==="object"){
+        if(c.kind==="page_control"){
+          const op=String(c.op||"").toLowerCase(),target=String(c.target||"");
+          if((op==="hide"||op==="show")&&target)out={ok:true,kind:"control",hash,op,target,height,l2Height};
+        }else if(c.doc_ref || (typeof c.html==="string" && c.html.trim())){
+          out={ok:true,kind:"page",hash,pageId:(typeof c.page_id==="string"&&c.page_id)?c.page_id:hash,title:String(c.title||"Untitled"),
+               doc_ref: c.doc_ref || null, is_bulky: !!c.doc_ref, doc_size: Number(c.doc_size || c.doc_ref?.size || 0),
+               html: typeof c.html==="string"?c.html:"",
+               format:c.format==="markdown"?"markdown":"html",markdown:typeof c.markdown==="string"?c.markdown:"",
+               category:String(c.category||""),tags:Array.isArray(c.tags)?c.tags.map(String):[],summary:String(c.summary||""),role:c.role==="about"?"about":"",
+               images:cleanImgs(c.images),created_at:String(c.created_at||""),height,l2Height};
+        }
+      }
+    }
+    recCache.set(hash,out);
+  }catch(e){return{ok:false,hash,transient:true}}
+  return out;
+}
+const byChain=(a,b)=>(a.height-b.height)||(a.l2Height-b.l2Height);
+function buildGroups(records){
+  const groups=new Map(),ctl=new Map();
+  for(const r of records){
+    if(r.kind==="page"){if(!groups.has(r.pageId))groups.set(r.pageId,[]);groups.get(r.pageId).push(r)}
+    else if(r.kind==="control"){if(!ctl.has(r.target))ctl.set(r.target,[]);ctl.get(r.target).push(r)}
+  }
+  const out=[];
+  for(const [pid,vs] of groups){
+    vs.sort(byChain);const first=vs[0],latest=vs[vs.length-1];
+    const cs=(ctl.get(pid)||[]).concat(...vs.map(v=>ctl.get(v.hash)||[])).sort(byChain);
+    out.push({pageId:pid,title:latest.title,doc_ref:latest.doc_ref,is_bulky:latest.is_bulky,doc_size:latest.doc_size,
+      html:latest.html,format:latest.format,markdown:latest.markdown,images:latest.images,category:latest.category,tags:latest.tags,summary:latest.summary,role:latest.role,
+      latestHash:latest.hash,created_at:first.created_at,height:first.height,versions:vs.length,hidden:!!cs.length&&cs[cs.length-1].op==="hide"});
+  }
+  return out.sort((a,b)=>b.height-a.height);
+}
+let groups=[];
+async function loadMine(){
+  if(!app.wallet)return;
+  $("reload").disabled=true;$("mgrNote").textContent="Loading your pages (fast metadata query, bulky documents deferred)…";
+  try{
+    const raw=await query(app.l1.base,"/l2-pointers");
+    const list=Array.isArray(raw)?raw:Object.values(raw||{});
+    const mine=list.filter(p=>String(field(p,"signer","Signer")||"")===app.wallet.address)
+      .filter(p=>["SUBMIT_POST","POST","PAGE_CONTROL"].includes(String(field(p,"action","Action")||"").toUpperCase()));
+    const recs=[];let i=0;
+    await Promise.all(Array.from({length:Math.min(8,mine.length)},async()=>{while(i<mine.length){const r=await resolveRec(mine[i++]);if(r.ok)recs.push(r)}}));
+    groups=buildGroups(recs);renderMgr();
+  }catch(e){$("mgrNote").textContent="Could not load: "+e.message;$("mgrNote").className="bad"}
+  finally{$("reload").disabled=false}
+}
+function renderMgr(){
+  const body=$("mgrBody");body.innerHTML="";
+  $("mgr").style.display=groups.length?"":"none";
+  $("mgrNote").className="muted";
+  $("mgrNote").textContent=groups.length?`${groups.length} page${groups.length===1?"":"s"}. Edit downloads the full document and publishes a new version; Remove hides the page on your blog.`:"No pages found yet. Publish one above.";
+  const cl=$("catlist");cl.innerHTML="";
+  [...new Set(groups.map(g=>g.category).filter(Boolean))].forEach(c=>{const o=document.createElement("option");o.value=c;cl.appendChild(o)});
+  for(const g of groups){
+    const tr=document.createElement("tr");
+    const td=(t)=>{const c=document.createElement("td");c.textContent=t;return c};
+    const t0=td(g.title);
+    if(g.role==="about"){const p=document.createElement("span");p.className="pill";p.textContent="About";t0.appendChild(p)}
+    if(g.format==="markdown"){const p=document.createElement("span");p.className="pill";p.textContent="MD";t0.appendChild(p)}
+    tr.appendChild(t0);
+    tr.appendChild(td(g.category||"—"));
+    const storageTd = document.createElement("td");
+    if(g.is_bulky){
+      const sp = document.createElement("span");
+      sp.className = "pill chunk";
+      sp.textContent = `Chunked (${(g.doc_size/1024).toFixed(0)} KB)`;
+      storageTd.appendChild(sp);
+    } else {
+      storageTd.textContent = "Inline";
+    }
+    tr.appendChild(storageTd);
+    tr.appendChild(td(g.created_at?new Date(g.created_at).toLocaleDateString():"—"));
+    tr.appendChild(td(String(g.versions)));
+    const st=document.createElement("td");const tg=document.createElement("span");tg.className="tag "+(g.hidden?"hid":"vis");tg.textContent=g.hidden?"Hidden":"Visible";st.appendChild(tg);tr.appendChild(st);
+    const act=document.createElement("td");act.className="act";
+    const mk=(label,fn)=>{const b=document.createElement("button");b.className="ghost";b.textContent=label;b.onclick=fn;act.appendChild(b)};
+    mk("Edit",()=>startEdit(g));
+    if(g.hidden)mk("Restore",()=>control(g,"show"));else mk("Remove",()=>control(g,"hide"));
+    tr.appendChild(act);body.appendChild(tr);
+  }
+}
+
+/* ---------- format and state ---------- */
+const MD_CSS=`.md{max-width:720px;margin:0 auto;padding:24px 20px;font:17px/1.7 Georgia,"Times New Roman",serif;color:#1f1d1a}
+.md h1,.md h2,.md h3,.md h4{font-family:system-ui,sans-serif;line-height:1.25;margin:1.6em 0 .5em}.md h1{font-size:1.9rem}.md h2{font-size:1.5rem}.md h3{font-size:1.2rem}
+.md p,.md ul,.md ol,.md blockquote,.md pre,.md table{margin:0 0 1em}.md a{color:#8a5a2b}.md img{max-width:100%;height:auto}
+.md code{font:.88em ui-monospace,Consolas,monospace;background:#f1eee6;padding:.1em .35em;border-radius:4px}.md pre{background:#f1eee6;padding:12px 14px;border-radius:8px;overflow-x:auto}.md pre code{background:none;padding:0}
+.md blockquote{border-left:3px solid #d9d2c5;margin-left:0;padding-left:16px;color:#5d584f}.md hr{border:0;border-top:1px solid #e3ded4;margin:2em 0}
+.md table{border-collapse:collapse;display:block;overflow-x:auto}.md th,.md td{border:1px solid #e3ded4;padding:6px 10px;text-align:left}.md th{background:#f6f3ec}`;
+const getMode=()=>document.querySelector('input[name="fmt"]:checked').value;
+function setMode(m){
+  document.querySelector(`input[name="fmt"][value="${m}"]`).checked=true;
+  $("editLbl").textContent=m==="markdown"?"Markdown":"HTML";
+  $("html").placeholder=m==="markdown"?"# Heading\n\nWrite **Markdown** here. Bulky content is automatically chunked.":"";
+  updatePreview();
+}
+function cleanTags(v){
+  const seen=new Set(),out=[];
+  for(let t of String(v||"").split(",")){t=t.trim().replace(/^#+/,"").trim().slice(0,30);if(t&&!seen.has(t.toLowerCase())){seen.add(t.toLowerCase());out.push(t)}}
+  return out.slice(0,8);
+}
+
+/* ---------- images inside the document ---------- */
+const IMG_MAX_COUNT=18, IMG_MAX_SIDE=1600, IMG_TARGET_BYTES=180*1024;
+let images={};
+let imgNames={};
+let imgSeq=1;
+const imgTok=id=>`cwc:${id}`;
+const imgUsed=src=>new Set([...String(src).matchAll(/cwc:(img\d{1,3})\b/g)].map(m=>m[1]));
+const withImages=html=>String(html).replace(/cwc:(img\d{1,3})\b/g,(m,id)=>images[id]||m);
+const dataBytes=u=>Math.floor((u.length-u.indexOf(",")-1)*0.75);
+function blobToDataURL(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(b)})}
+async function shrinkImage(file){
+  let bmp;
+  try{bmp=await createImageBitmap(file)}catch{throw Error("Could not read this image.")}
+  let w=bmp.width,h=bmp.height;
+  const k=Math.min(1,IMG_MAX_SIDE/Math.max(w,h));w=Math.max(1,Math.round(w*k));h=Math.max(1,Math.round(h*k));
+  let best=null;
+  for(let round=0;round<6;round++){
+    const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+    const g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,w,h);g.drawImage(bmp,0,0,w,h);
+    for(const q of [.85,.75,.65,.55,.45]){
+      const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",q));
+      if(!blob)throw Error("This browser could not compress the image.");
+      best={blob,w,h};
+      if(blob.size<=IMG_TARGET_BYTES)return{url:await blobToDataURL(blob),w,h};
+    }
+    w=Math.max(1,Math.round(w*.8));h=Math.max(1,Math.round(h*.8));
+  }
+  return{url:await blobToDataURL(best.blob),w:best.w,h:best.h};
+}
+function renderImgList(){
+  const box=$("imgList"),ids=Object.keys(images),used=imgUsed($("html").value);
+  box.replaceChildren(...ids.map(id=>{
+    const row=document.createElement("div");row.className="imgRow";
+    const im=document.createElement("img");im.src=images[id];im.alt="";
+    const info=document.createElement("div");info.className="grow";
+    const b=document.createElement("b");b.textContent=id;
+    const t=document.createElement("div");t.className="mono muted";t.textContent=`${(dataBytes(images[id])/1024).toFixed(0)} KB · `+(used.has(id)?"used in the text":"not used yet");
+    info.append(b,t);
+    const ins=document.createElement("button");ins.type="button";ins.textContent="Insert";ins.onclick=()=>insertImg(id);
+    const del=document.createElement("button");del.type="button";del.className="ghost";del.textContent="Remove";del.onclick=()=>removeImg(id);
+    row.append(im,info,ins,del);return row;
+  }));
+}
+function insertImg(id){
+  const ta=$("html"),md=getMode()==="markdown",alt=(imgNames[id]||"picture");
+  const tag=md?`![${alt}](${imgTok(id)})`:`<img src="${imgTok(id)}" alt="${alt}" style="max-width:100%;height:auto">`;
+  const a=ta.selectionStart??ta.value.length,z=ta.selectionEnd??a;
+  ta.value=ta.value.slice(0,a)+tag+ta.value.slice(z);ta.focus();ta.selectionStart=ta.selectionEnd=a+tag.length;
+  updatePreview();
+}
+function removeImg(id){
+  if(imgUsed($("html").value).has(id)){alert(`${id} is used in your text. Delete its tag from the text first, then remove it.`);return}
+  delete images[id];renderImgList();updatePreview();
+}
+$("imgAdd").addEventListener("click",()=>$("imgFile").click());
+$("imgFile").addEventListener("change",async e=>{
+  const files=[...e.target.files];e.target.value="";
+  const msg=$("imgMsg");
+  for(const f of files){
+    try{
+      if(Object.keys(images).length>=IMG_MAX_COUNT)throw Error(`Only ${IMG_MAX_COUNT} images per page.`);
+      if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type))throw Error(`${f.name}: use JPEG, PNG, WebP or GIF.`);
+      msg.textContent=`Compressing ${f.name}…`;
+      const r=await shrinkImage(f),id="img"+(imgSeq++);
+      images[id]=r.url;imgNames[id]=f.name.replace(/\.[^.]+$/,"").replace(/[\[\]()"<>&]/g," ").slice(0,60).trim();
+      msg.textContent=`${f.name}: ${r.w}×${r.h}, ${(dataBytes(r.url)/1024).toFixed(0)} KB`;
+      insertImg(id);
+    }catch(err){msg.textContent=err.message}
+  }
+  renderImgList();
+});
+$("html").addEventListener("input",renderImgList);
+function clearFields(){images={};imgNames={};imgSeq=1;renderImgList();["title","category","tags","summary","teaser"].forEach(id=>$(id).value="");$("isAbout").checked=false;$("html").value="";setMode("html")}
+
+let editing=null;
+async function startEdit(g){
+  log(`Loading document for "${g.title}"…`);
+  let docHtml = g.html || "";
+  let docMd = g.markdown || "";
+  let docImages = { ...(g.images || {}) };
+
+  // If the document is stored in chunked form on L2, assemble it now!
+  if(g.doc_ref && (!docHtml || (g.format === "markdown" && !docMd))){
+    try {
+      log(`Document is chunked on L2 (${(g.doc_size/1024).toFixed(0)} KB). Assembling…`);
+      const assembled = await assembleMediaRefBlob(g.doc_ref, (msg)=>log(`[Assembling] ${msg}`));
+      const text = await assembled.blob.text();
+      const parsed = JSON.parse(text);
+      docHtml = parsed.html || "";
+      docMd = parsed.markdown || "";
+      docImages = { ...docImages, ...(parsed.images || {}) };
+      log(`Document chunks retrieved and verified. Ready to edit.`, "ok");
+    } catch(err) {
+      alert(`Could not load document from L2: ${err.message}`);
+      return;
+    }
+  }
+
+  editing={pageId:g.pageId,latestHash:g.latestHash,title:g.title};
+  const isMd = g.format === "markdown" && docMd;
+  $("title").value=g.title;$("category").value=g.category||"";$("tags").value=(g.tags||[]).join(", ");$("summary").value=g.summary||"";$("teaser").value="";
+  $("isAbout").checked=g.role==="about";
+  images = docImages;
+  imgSeq = 1 + Math.max(0, ...Object.keys(images).map(k=>Number(k.slice(3))||0));
+  $("html").value = isMd ? docMd : docHtml;
+  setMode(isMd ? "markdown" : "html");
+  renderImgList();
+  $("banner").classList.add("on");$("bannerText").textContent=`Editing "${g.title}". Publishing creates a new version; the old version is preserved on-chain.`;
+  $("publish").textContent="Publish new version";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function stopEdit(){editing=null;$("banner").classList.remove("on");$("publish").textContent="Publish to chain"}
+$("cancelEdit").addEventListener("click",()=>{stopEdit();clearFields();updatePreview()});
+
+/* ---------- anchor on L1 ---------- */
+async function storeAndAnchor(key,content,actions){
+  log("Storing post record on L2…");
+  const stored=await broadcast(app.l2,"STORE",{key,content});
+  if(!stored.height)throw Error("L2 did not return a committed height.");
+  const l2Hash=stored.hash;
+  log(`L2 post committed at block ${stored.height}. Anchoring on L1…`,"ok");
+  let indexed=null,lastErr=null;
+  for(const action of actions){
+    try{
+      indexed=await broadcast(app.l1,"L2_POINTER",{l2_chain_id:app.l2.chainID,l2_tx_hash:l2Hash,l2_height:stored.height,action});
+      break;
+    }catch(e){lastErr=e;}
+  }
+  if(!indexed)throw lastErr||Error("L1 pointer failed.");
+  log(`L1 pointer committed at block ${indexed.height}. Waiting for L2 receipt quorum…`,"ok");
+  await waitForAcceptedPointerReceipt(l2Hash);
+  return{l2Hash,stored,indexed};
+}
+async function preflight(){
+  app.wallet.l2Account=await readAccount(app.l2,app.wallet.address);
+  const funded = await l2Funded();
+  if(funded<=0n)throw Error("No L2 storage balance. Move some funds into storage on the feed page first.");
+  await ensureRegistered();
+}
+
+/* ---------- connect ---------- */
+async function doConnect(btn,useIdentity){
+  btn.disabled=true;$("publish").disabled=true;
+  try{
+    if(useIdentity){ if(!idOrigin)throw Error("IDENTITY_URL is not set."); idOpen(); }
+    const l1h=$("l1host").value.trim().replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+    const l2h=($("l2host").value.trim()||l1h.replace(/(^|[-.])l1(?=[-.])/i,"$1l2")).replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+    if(!l1h||l1h===l2h)throw Error("Enter a valid L1 host (and an L2 host if it can't be derived).");
+    $("conn").className="muted";$("conn").textContent="Connecting…";
+    app.l1=await connectLayer(`https://${l1h}${RPC_PATH}`,"layer-1");
+    app.l2=await connectLayer(`https://${l2h}${RPC_PATH}`,"layer-2");
+    
+    // Feature detect capabilities instead of hardcoded protocol version
+    const l2Types = app.l2?.cap?.TransactionTypes || app.l2?.cap?.transaction_types || [];
+    if(l2Types.length > 0 && !l2Types.includes("STORE"))throw Error("Connected Layer 2 chain does not support STORE transactions.");
+    
+    if(useIdentity){
+      $("conn").textContent="Waiting for you in the identity window…";
+      await idHandshake();
+      const r=await idCall("login",{});
+      app.wallet={address:r.address,publicKey:r.publicKey,remote:true};
+    }else{
+      $("conn").textContent="Deriving wallet key…";
+      app.wallet=await walletFromSeed($("seed").value);
+      $("seed").value="";
+    }
+    app.wallet.l2Account=await readAccount(app.l2,app.wallet.address);
+    const funded=await l2Funded();
+    $("conn").innerHTML=`Connected · L1 <b>${app.l1.chainID}</b> · L2 <b>${app.l2.chainID}</b><br>Wallet <span class="mono">${app.wallet.address}</span>${app.wallet.remote?" <span class='muted'>(keys stay in cWc Identity)</span>":""}<br>`+
+      (funded>0n?`<span class="ok">Storage balance available on L2.</span>`:`<span class="bad">No L2 storage balance. Fund storage from the feed page first.</span>`);
+    $("publish").disabled=false;
+    log(`Connected to ${app.l1.chainID} / ${app.l2.chainID} as ${app.wallet.address}`,"ok");
+    loadMine();
+  }catch(e){$("conn").className="bad";$("conn").textContent=e.message;log("Connect failed: "+e.message,"bad")}
+  finally{btn.disabled=false}
+}
+$("connect").addEventListener("click",()=>doConnect($("connect"),false));
+$("connectId").addEventListener("click",()=>doConnect($("connectId"),true));
+if(!idOrigin){ if(IDENTITY_URL){ $("connectId").disabled=true; $("idBox").insertAdjacentHTML("beforeend",'<p class="bad">IDENTITY_URL in this file is not a valid web address.</p>'); } else $("idBox").style.display="none"; }
+$("reload").addEventListener("click",()=>{recCache.clear();loadMine()});
+
+/* ---------- live preview ---------- */
+let pvTimer=null;
+function renderedBody(){const src=$("html").value;return withImages(getMode()==="markdown"?mdToHtml(src):src)}
+function updatePreview(){
+  const md=getMode()==="markdown",body=renderedBody();
+  $("preview").srcdoc=`<base target="_blank"><style>body{margin:0;padding:${md?0:16}px;font:16px/1.55 system-ui,sans-serif;color:#1f1d1a;background:#fff}img,video,svg{max-width:100%}${md?MD_CSS:""}</style>${md?`<div class="md">${body}</div>`:body}`;
+  const imgBytes=[...imgUsed($("html").value)].reduce((n,id)=>n+(images[id]?images[id].length:0),0);
+  const totalBytes = enc.encode($("html").value).length + imgBytes;
+  const isChunked = totalBytes > BULKY_DOC_INLINE_THRESHOLD || Object.keys(images).length > 0;
+  $("size").textContent=`· ${(totalBytes/1024).toFixed(1)} KB ${isChunked ? "(will upload in L2 chunks)" : "(inline)"}`;
+  $("chunkNotice").style.borderColor = isChunked ? "var(--accent)" : "var(--line)";
+}
+$("html").addEventListener("input",()=>{clearTimeout(pvTimer);pvTimer=setTimeout(updatePreview,250)});
+document.querySelectorAll('input[name="fmt"]').forEach(r=>r.addEventListener("change",()=>setMode(getMode())));
+$("sample").addEventListener("click",()=>{
+  stopEdit();
+  if(getMode()==="markdown"){
+    $("title").value="Decentralized Chunked Publishing";$("category").value="Architecture";$("tags").value="cwc, protocol, storage";
+    $("summary").value="How chainWare stores multi-megabyte articles using L2 chunked media streaming.";
+    $("html").value=`# Decentralized Chunked Publishing
+
+This article demonstrates **heavy document publishing** on the chainWare blockchain!
+
+## How It Works
+
+1. **Lightweight Index:** The main feed and blog home list only load post metadata: *title*, *category*, *tags*, and *summary*.
+2. **Chunked Media Manifest:** Bulky Markdown, compiled HTML, and embedded images are divided into 192 KB chunks on Layer 2.
+3. **On-Demand Assembly:** When a reader clicks this post, the browser streams and cryptographically verifies the chunks in parallel.
+
+> "No single gatekeeper. No transaction size ceiling."
+
+### Features
+
+- Embedded images stored directly on Layer 2
+- Cryptographic SHA-256 verification of every chunk
+- Zero bloat on initial blog feed load
+
+\`\`\`json
+{
+  "protocol": "chainware-v12",
+  "storage": "L2_CHUNKED_MEDIA",
+  "anchored_on": "L1"
+}
+\`\`\`
+`;
+  }else{
+    $("title").value="Interactive Calculator";$("category").value="Tools";$("tags").value="interactive, calculator";
+    $("summary").value="A sandboxed interactive HTML calculator stored on chain.";
+    $("html").value=`<div style="max-width:320px;margin:0 auto;padding:16px;border:1px solid #d9d2c5;border-radius:12px;background:#faf7f0;font-family:system-ui,sans-serif">
+  <h3 style="margin:0 0 12px">Add two numbers</h3>
+  <input id="a" type="number" placeholder="First number" style="width:100%;padding:8px;margin-bottom:8px;box-sizing:border-box">
+  <input id="b" type="number" placeholder="Second number" style="width:100%;padding:8px;margin-bottom:8px;box-sizing:border-box">
+  <button onclick="var x=parseFloat(a.value),y=parseFloat(b.value);r.textContent=isNaN(x)||isNaN(y)?'Enter two numbers':x+' + '+y+' = '+(Math.round((x+y)*1e10)/1e10)" style="padding:8px 16px;cursor:pointer">Add</button>
+  <p id="r" style="margin:12px 0 0;font-size:1.2rem;font-weight:600"></p>
+</div>`;
+  }
+  updatePreview();
+});
+
+/* ---------- publish with chunking for bulky documents ---------- */
+$("publish").addEventListener("click",async()=>{
+  const b=$("publish");
+  try{
+    const title=$("title").value.trim(),src=$("html").value,mode=getMode();
+    if(!app.wallet)throw Error("Connect first.");
+    if(!title)throw Error("Enter a title.");
+    if(!src.trim())throw Error(`The ${mode==="markdown"?"Markdown":"HTML"} is empty.`);
+    
+    const id=Date.now().toString(36)+"-"+crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    const created_at=new Date().toISOString();
+    const key=`feed:post:${created_at}:${id}`;
+    const isAbout=$("isAbout").checked;
+    const text=$("teaser").value.trim()||(editing?`Updated: ${title}`:`${isAbout?"New About page":"New page"}: ${title}`);
+    
+    const usedIds=[...imgUsed(src)];
+    for(const u of usedIds)if(!images[u])throw Error(`The text uses ${u}, but that image is not in the list. Add the image again or remove the tag.`);
+    const docImages = usedIds.length ? Object.fromEntries(usedIds.map(u=>[u,images[u]])) : {};
+    
+    // Package complete bulky document
+    const rawHtml = mode === "markdown" ? mdToHtml(src) : src;
+    const docPayload = {
+      kind: "blog_document",
+      version: 2,
+      format: mode,
+      html: rawHtml,
+      markdown: mode === "markdown" ? src : "",
+      images: docImages
+    };
+
+    const docJsonBytes = enc.encode(JSON.stringify(docPayload));
+    const isBulky = docJsonBytes.length > BULKY_DOC_INLINE_THRESHOLD || Object.keys(docImages).length > 0;
+
+    let docRef = null;
+    if(!confirm(editing?`Publish a NEW VERSION of "${title}"?\n${isBulky?`Document size: ${(docJsonBytes.length/1024).toFixed(0)} KB (will upload via L2 chunking).`:""}\n\nTeaser on the feed: ${text}`:`Publish "${title}" permanently to ${app.l2.chainID}?\n${isBulky?`Document size: ${(docJsonBytes.length/1024).toFixed(0)} KB (will upload via L2 chunking).`:""}\n\nTeaser on the feed: ${text}`))return;
+
+    b.disabled=true;
+    await preflight();
+
+    // 1. If bulky, store chunks and manifest on L2 first!
+    if(isBulky){
+      log(`Document is ${(docJsonBytes.length/1024).toFixed(1)} KB · Storing via L2 chunked media protocol…`);
+      const docBlob = new Blob([docJsonBytes], { type: "application/json" });
+      docRef = await storeGenericMedia(docBlob, {
+        scope: `post:${id}`,
+        media_type: "document",
+        mime: "application/json",
+        name: `${id}-doc.json`
+      }, p => log(`[Chunking] ${p.label}`));
+      log(`Document chunks committed. Manifest hash: ${docRef.manifest_tx_hash}`, "ok");
+    }
+
+    // 2. Prepare lightweight post record (never bloats the feed/blog list)
+    const content = {
+      kind: "post",
+      id,
+      text, // Teaser shown on feed
+      title,
+      page_id: editing ? editing.pageId : id,
+      category: $("category").value.trim().slice(0, 40),
+      tags: cleanTags($("tags").value),
+      summary: $("summary").value.trim().slice(0, 200) || (summaryOf(rawHtml)),
+      format: mode,
+      created_at,
+      author: app.wallet.address,
+      image: "", video: "", audio: "", pdf: ""
+    };
+
+    if(docRef){
+      content.doc_ref = docRef;
+      content.is_bulky = true;
+      content.doc_size = docJsonBytes.length;
+    } else {
+      content.html = rawHtml;
+      if(mode === "markdown") content.markdown = src;
+      if(Object.keys(docImages).length) content.images = docImages;
+    }
+
+    if(isAbout) content.role = "about";
+    if(editing) content.replaces = editing.latestHash;
+
+    const r = await storeAndAnchor(key, content, ["POST", "SUBMIT_POST"]);
+    log(`Published "${title}" successfully. L2 post tx: ${r.l2Hash}`, "ok");
+    stopEdit();clearFields();updatePreview();
+    recCache.clear();loadMine();
+  }catch(e){log("Failed: "+e.message,"bad");alert(e.message)}
+  finally{b.disabled=!app.wallet}
+});
+
+function summaryOf(html){
+  try {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    doc.querySelectorAll("script,style,title").forEach(n=>n.remove());
+    const t = (doc.body?.textContent || "").replace(/\s+/g," ").trim();
+    return t.length > 170 ? t.slice(0, 160).trim() + "…" : t;
+  } catch { return ""; }
+}
+
+/* ---------- remove / restore ---------- */
+async function control(g,op){
+  try{
+    const verb=op==="hide"?"Remove":"Restore";
+    if(!confirm(`${verb} "${g.title}" on your blog?\n\n`+(op==="hide"?"The page will be hidden on your blog. The data stays on the chain (public). You can restore it later.":"The page will be shown on your blog again.")))return;
+    await preflight();
+    const id=Date.now().toString(36)+"-"+crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    const created_at=new Date().toISOString();
+    const content={kind:"page_control",id,op,target:g.pageId,title:g.title,text:`${op==="hide"?"Removed":"Restored"}: ${g.title}`,author:app.wallet.address,created_at};
+    const r=await storeAndAnchor(`feed:post:${created_at}:${id}`,content,["PAGE_CONTROL","POST","SUBMIT_POST"]);
+    log(`${verb}d "${g.title}". L2 tx ${r.l2Hash}`,"ok");
+    recCache.clear();loadMine();
+  }catch(e){log("Failed: "+e.message,"bad");alert(e.message)}
+}
+
+$("publishLink").classList.toggle("on")
+updatePreview();
+</script>
+</body>
+</html>

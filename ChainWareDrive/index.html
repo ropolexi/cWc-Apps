@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>ChainWareDrive v1.1</title>
+<style>
+:root{--bg:#f3f6fb;--panel:#fff;--panel2:#f6f8fc;--ink:#1b1f27;--muted:#667085;--line:#e1e6ee;--brand:#0f6cbd;--brand2:#0b4f8c;--soft:#e5f1fb;--ok:#13795b;--okbg:#e3f6ee;--bad:#b42318;--badbg:#fdecea;--warn:#9a6700;--warnbg:#fff4d6;--shadow:0 8px 28px rgba(16,24,40,.14);--r:10px}
+@media (prefers-color-scheme:dark){:root{--bg:#10141b;--panel:#1a1f29;--panel2:#212733;--ink:#e8ecf3;--muted:#9aa4b5;--line:#2b3340;--brand:#4aa3f0;--brand2:#8cc6f7;--soft:#1b2e44;--ok:#4cd3a0;--okbg:#12332a;--bad:#ff8a7d;--badbg:#3a1a17;--warn:#e3b341;--warnbg:#3a2f12;--shadow:0 8px 28px rgba(0,0,0,.55)}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere;word-break:break-all}
+.muted{color:var(--muted)}
+/* buttons */
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:filter .1s,background .1s}
+.btn:hover{filter:brightness(.97);background:var(--panel2)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{filter:brightness(1.08);background:var(--brand)}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:12px}
+input[type=text],input[type=password],input[type=search],select,textarea{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:9px 11px;width:100%}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+/* auth */
+.auth{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:linear-gradient(135deg,var(--bg),var(--soft));overflow:auto}
+.authCard{width:min(520px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:26px}
+.logo{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.logo span{color:var(--brand)}
+.tag{margin:4px 0 16px;color:var(--muted)}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:6px 14px;font-weight:600}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.field{margin:10px 0}
+.field label{display:block;font-weight:600;margin-bottom:5px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.seed{min-height:110px;resize:vertical;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.note{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:13px}
+.note.warn{background:var(--warnbg);border-color:var(--warn)}
+.note.bad{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.note.ok{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.check{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:13px}
+.check input{margin-top:3px}
+.netline{margin-top:14px;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px}
+.dot.on{background:var(--ok)}.dot.off{background:var(--bad)}
+/* app shell */
+.top{height:56px;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top .logo{font-size:19px;white-space:nowrap}
+.search{flex:1;max-width:520px}
+.search input{border-radius:999px;background:var(--panel2);padding-left:16px}
+.chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 56px)}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.nav{display:flex;gap:10px;align-items:center;border:0;background:transparent;border-radius:8px;padding:9px 12px;text-align:left;font-weight:600;width:100%}
+.nav:hover{background:var(--panel2)}
+.nav.on{background:var(--soft);color:var(--brand)}
+.badge{margin-left:auto;background:var(--brand);color:#fff;border-radius:999px;font-size:11px;padding:1px 8px}
+.sidefoot{margin-top:auto;padding:10px 12px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+main{padding:16px 20px 120px;min-width:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar .grow{flex:1}
+.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.spin{width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.crumbs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;font-size:18px;font-weight:700;margin:6px 0 12px}
+.crumbs a{cursor:pointer;color:inherit;padding:2px 6px;border-radius:6px}
+.crumbs a:hover{background:var(--soft)}
+.crumbs i{color:var(--muted);font-style:normal}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.drop{position:relative}
+.drop.over{outline:3px dashed var(--brand);outline-offset:-3px}
+.drop.over::after{content:"Drop files to encrypt & upload";position:absolute;inset:0;display:grid;place-items:center;background:color-mix(in srgb,var(--soft) 88%,transparent);font-size:20px;font-weight:700;color:var(--brand)}
+table.files{width:100%;border-collapse:collapse}
+.files th{font-size:12px;text-align:left;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+.files td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.files tr:last-child td{border-bottom:0}
+.files tbody tr:hover{background:var(--panel2)}
+.nm{display:flex;align-items:center;gap:10px;min-width:0}
+.ic{font-size:22px;width:28px;text-align:center;flex:none}
+.name{font-weight:600;cursor:pointer;overflow-wrap:anywhere}
+.name:hover{color:var(--brand);text-decoration:underline}
+.lock{font-size:11px;opacity:.7}
+.acts{white-space:nowrap;text-align:right}
+.acts button{border:0;background:transparent;border-radius:6px;padding:5px 7px;font-size:15px;opacity:.75}
+.acts button:hover{background:var(--soft);opacity:1}
+.empty{padding:50px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-size:17px;color:var(--ink);margin-bottom:6px}
+/* transfers */
+.xfer{position:fixed;right:16px;bottom:16px;width:min(440px,calc(100vw - 32px));z-index:40;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.xhead{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);font-weight:700;cursor:pointer}
+.xlist{max-height:min(62vh,640px);overflow:auto}
+.xfer.min .xlist{display:none}
+.job{padding:12px 14px;border-bottom:1px solid var(--line)}
+.job:last-child{border-bottom:0}
+.jtop{display:flex;gap:8px;align-items:center}
+.jname{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--brand);white-space:nowrap}
+.pill.done{background:var(--okbg);color:var(--ok)}.pill.error,.pill.cancelled{background:var(--badbg);color:var(--bad)}.pill.queued{background:var(--panel2);color:var(--muted)}
+.bar{height:10px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;margin:9px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--brand);border-radius:99px;transition:width .25s}
+.job.running .bar i{background-image:linear-gradient(45deg,rgba(255,255,255,.28) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.28) 75%,transparent 75%);background-size:18px 18px;animation:stripe 1s linear infinite}
+.job.done .bar i{background:var(--ok)}.job.error .bar i,.job.cancelled .bar i{background:var(--bad)}
+@keyframes stripe{to{background-position:18px 0}}
+.jsum{font-size:12px;color:var(--muted)}
+.jphase{font-size:12px;margin-top:2px}
+.jbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:10px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:12px}
+.kv div{background:var(--panel);padding:6px 9px;display:flex;flex-direction:column}
+.kv div.wide{grid-column:1/-1}
+.kv span{color:var(--muted);font-size:11px}
+.kv b{font-weight:600;overflow-wrap:anywhere}
+.kv .h{grid-column:1/-1;background:var(--panel2);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+/* dialogs */
+#modal{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.55);display:none;place-items:center;padding:14px}
+#modal.show{display:grid}
+.dlg{width:min(520px,100%);max-height:92vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.dlg.wide{width:min(900px,100%)}
+.dlgHead{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dlgHead h2{margin:0;font-size:17px;flex:1}
+.x{border:0;background:transparent;font-size:24px;line-height:1;border-radius:6px;padding:2px 8px}
+.x:hover{background:var(--panel2)}
+.dlgBody{padding:14px 16px;overflow:auto}
+.dlgBody h3{margin:16px 0 6px;font-size:14px}
+.dlgFoot{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--line)}
+.dlgFoot:empty{display:none}
+.kvl{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:13px}
+.kvl span{color:var(--muted)}
+.previewBox{display:grid;place-items:center;background:#000;border-radius:8px;overflow:hidden;min-height:120px}
+.previewBox video,.previewBox img{max-width:100%;max-height:68vh}
+.previewBox iframe{width:100%;height:68vh;border:0;background:#fff}
+.previewBox pre{margin:0;padding:12px;color:#ddd;max-height:68vh;overflow:auto;width:100%;white-space:pre-wrap}
+.folderPick label{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer}
+.folderPick label:hover{background:var(--panel2)}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{pointer-events:auto;background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;font-weight:600;box-shadow:var(--shadow);max-width:min(560px,92vw)}
+.toast.bad{background:var(--bad);color:#fff}.toast.ok{background:var(--ok);color:#fff}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .side .nav{width:auto}.sidefoot{display:none}
+  main{padding:12px 10px 150px}
+  .hide-s{display:none}
+  .top .chip.l2{display:none}
+  .xfer{right:8px;left:8px;width:auto;bottom:8px}
+  .kvl{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ sign-in ============ -->
+<div id="auth" class="auth">
+  <div class="authCard">
+    <div class="logo">ChainWare<span>Drive</span></div>
+    <p class="tag">Private file storage on chainWare. Files are encrypted in your browser before they leave it.</p>
+    <div class="tabs" id="authTabs">
+      <button data-tab="unlock" class="hidden">Unlock</button>
+      <button data-tab="new">New drive</button>
+      <button data-tab="import">Open with recovery words</button>
+    </div>
+
+    <section data-pane="unlock" class="hidden">
+      <div class="note">A drive is saved on this device, protected by your password.</div>
+      <div class="field"><label>Password</label><input type="password" id="unlockPw" autocomplete="current-password"></div>
+      <div class="row"><button class="btn primary" id="unlockBtn">Unlock drive</button><button class="btn sm danger" id="forgetVault">Forget this device</button></div>
+    </section>
+
+    <section data-pane="new" class="hidden">
+      <div class="field"><label>Your recovery words</label><textarea class="seed" id="newSeed" readonly></textarea></div>
+      <div class="note warn"><b>These 24 words are your password and your encryption key.</b> Nobody, including us, can recover them. If you lose them your files are gone for good. Write them down somewhere safe.</div>
+      <div class="row"><button class="btn sm" id="copySeed">Copy words</button><button class="btn sm" id="regenSeed">Generate different words</button></div>
+      <label class="check"><input type="checkbox" id="seedSaved"><span>I have saved the recovery words.</span></label>
+      <div id="remNewBox"></div>
+      <button class="btn primary" id="createBtn" disabled>Create my drive</button>
+    </section>
+
+    <section data-pane="import" class="hidden">
+      <div class="field"><label>Recovery words (12, 15 or 24)</label><textarea class="seed" id="importSeed" spellcheck="false" autocomplete="off" placeholder="Paste your recovery words. The same words as your chainWare feed wallet work here."></textarea></div>
+      <div id="remImpBox"></div>
+      <button class="btn primary" id="importBtn">Open my drive</button>
+    </section>
+
+    <div id="authMsg" class="note hidden"></div>
+    <div class="netline"><span class="dot" id="netDot"></span><span id="netLine">Connecting to chainWare…</span></div>
+  </div>
+</div>
+
+<!-- ============ app ============ -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="logo">ChainWare<span>Drive</span></div>
+    <div class="search"><input type="search" id="searchBox" placeholder="Search your files"></div>
+    <span class="chip l2" id="balChip" title="Storage balance on Layer 2 (pays for uploads)">Storage: …</span>
+    <button class="btn sm" id="acctBtn">Account</button>
+  </header>
+  <div class="shell">
+    <nav class="side">
+      <button class="nav on" id="navFiles">📁 My files</button>
+      <button class="nav" id="navXfer">⇅ Transfers <span class="badge hidden" id="xBadge">0</span></button>
+      <button class="nav" id="navAcct">👤 Account &amp; storage</button>
+      <div class="sidefoot" id="sideFoot"></div>
+    </nav>
+    <main id="mainArea">
+      <div class="toolbar">
+        <button class="btn primary" id="uploadBtn">⬆ Upload files</button>
+        <button class="btn" id="folderBtn">📁 New folder</button>
+        <button class="btn" id="refreshBtn">⟳ Refresh</button>
+        <span class="grow"></span>
+        <span class="status" id="statusLine"></span>
+      </div>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="panel drop" id="drop">
+        <table class="files">
+          <thead><tr><th data-sort="name">Name</th><th data-sort="modified" class="hide-s">Modified</th><th data-sort="size">Size</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="emptyBox" class="empty hidden"></div>
+      </div>
+      <input type="file" id="fileInput" multiple class="hidden">
+    </main>
+  </div>
+  <aside class="xfer hidden" id="xfer">
+    <div class="xhead" id="xhead"><span id="xtitle">Transfers</span><span style="flex:1"></span><button class="btn sm" id="xclear">Clear finished</button><span id="xcaret">▾</span></div>
+    <div class="xlist" id="xlist"></div>
+  </aside>
+</div>
+
+<div id="modal"></div>
+<div id="toasts"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id), enc = new TextEncoder(), dec = new TextDecoder();
+const RPC_PATH = "/chainware-rpc", API_PARAM = "api", DEFAULT_API = "l1-13-2.diamondthumb.com";
+/* Drive-only action names. The main chainWare feed only renders SUBMIT_POST/POST, COMMENT, REACTION,
+   UPDATE_PROFILE/PROFILE, EDIT_POST and DELETE, so none of these ever show up there. */
+const ACT = { FILE: "DRIVE_FILE", FOLDER: "DRIVE_FOLDER", UPDATE: "DRIVE_UPDATE", DELETE: "DRIVE_DELETE" };
+const L1_FEE = "400000000", CHUNK_MIN = 24 * 1024, ATTEMPTS = 4;
+const LS_VAULT = "chainDrive:vault", LS_SESS = "chainDrive:uploads", LS_SET = "chainDrive:settings";
+
+/* ---------------- small helpers ---------------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function b64(bytes) { let s = ""; const a = new Uint8Array(bytes); for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode(...a.subarray(i, Math.min(i + 0x8000, a.length))); return btoa(s); }
+function unb64(v) { const s = atob(String(v || "")), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+function hex(bytes) { return Array.from(new Uint8Array(bytes), x => x.toString(16).padStart(2, "0")).join(""); }
+function fromHex(v) { const s = String(v).replace(/^0x/i, ""); const a = new Uint8Array(s.length / 2); for (let i = 0; i < a.length; i++) a[i] = parseInt(s.slice(i * 2, i * 2 + 2), 16); return a; }
+function concat(...arr) { const out = new Uint8Array(arr.reduce((s, a) => s + a.length, 0)); let o = 0; for (const a of arr) { out.set(a, o); o += a.length; } return out; }
+function b64url(v) { let s = String(v).replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; return unb64(s); }
+function goJSONEscapeText(t) { return String(t).replace(/[<>&\u2028\u2029]/g, ch => ({ "<": "\\u003c", ">": "\\u003e", "&": "\\u0026", "\u2028": "\\u2028", "\u2029": "\\u2029" })[ch]); }
+function goJSONStringify(v) { const e = JSON.stringify(v); return goJSONEscapeText(e === undefined ? "null" : e); }
+function canon(v) {
+  if (v === undefined) return "null";
+  if (v === null || typeof v !== "object") return goJSONStringify(v);
+  if (Array.isArray(v)) return `[${v.map(x => x === undefined ? "null" : canon(x)).join(",")}]`;
+  const keys = Object.keys(v).filter(k => v[k] !== undefined).sort();
+  return `{${keys.map(k => `${goJSONStringify(k)}:${canon(v[k])}`).join(",")}}`;
+}
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+const short = (v, a = 8, b = 6) => { const s = String(v || ""); return s.length > a + b + 2 ? `${s.slice(0, a)}…${s.slice(-b)}` : s; };
+const randomID = () => hex(crypto.getRandomValues(new Uint8Array(20)));
+const field = (o, ...names) => { for (const n of names) if (o && o[n] !== undefined && o[n] !== null) return o[n]; return undefined; };
+function fmtBytes(n) { n = Number(n) || 0; if (n < 1024) return n + " B"; const u = ["KB", "MB", "GB", "TB"]; let i = -1; do { n /= 1024; i++; } while (n >= 1024 && i < 3); return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2) + " " + u[i]; }
+function fmtDur(ms) { if (!isFinite(ms) || ms < 0) return "—"; const s = Math.round(ms / 1000); if (s < 60) return s + "s"; if (s < 3600) return Math.floor(s / 60) + "m " + (s % 60) + "s"; return Math.floor(s / 3600) + "h " + Math.floor(s % 3600 / 60) + "m"; }
+const fmtSpeed = bps => bps > 0 ? `${fmtBytes(bps)}/s · ${(bps * 8 / 1e6).toFixed(2)} Mbps` : "—";
+const fmtMs = ms => (ms == null || !isFinite(ms)) ? "—" : ms >= 1000 ? (ms / 1000).toFixed(2) + " s" : Math.round(ms) + " ms";
+const fmtDate = iso => { try { return new Date(iso).toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return ""; } };
+const newAcc = () => ({ n: 0, sum: 0, max: 0, last: null });
+const acc = (a, v) => { if (v == null || isNaN(v)) return; a.n++; a.sum += v; a.last = v; if (v > a.max) a.max = v; };
+const avg = a => a.n ? a.sum / a.n : null;
+const accTxt = a => a.n ? `avg ${fmtMs(avg(a))} · last ${fmtMs(a.last)} · max ${fmtMs(a.max)}` : "—";
+
+/* ---------------- wallet / seed (same derivation as the chainWare feed) ---------------- */
+const WORDS = ("amber anchor apple arch arrow atlas autumn bamboo beacon birch blue breeze brook cedar circle cloud cobalt comet coral creek dawn delta dune eagle earth ember fern field flame forest frost galaxy garden glacier gold harbor hazel hill horizon island jade lake leaf light maple meadow moon moss north ocean olive orbit pine quartz rain river sage silver sky solar stone sunrise tide willow").split(" ");
+const normalizeSeed = v => String(v || "").trim().toLowerCase().split(/\s+/).filter(Boolean).join(" ");
+function validateSeed(v) {
+  const p = normalizeSeed(v), w = p ? p.split(" ") : [];
+  if (![12, 15, 24].includes(w.length)) throw Error("Recovery words must contain exactly 12, 15, or 24 words.");
+  if (!w.every(x => WORDS.includes(x))) throw Error("The recovery phrase contains a word outside the chainWare seed vocabulary.");
+  return p;
+}
+const makeSeed = (n = 24) => Array.from(crypto.getRandomValues(new Uint8Array(n)), x => WORDS[x & 63]).join(" ");
+async function walletFromSeed(seed) {
+  const phrase = validateSeed(seed);
+  const material = await crypto.subtle.importKey("raw", enc.encode(phrase), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-512", salt: enc.encode("chainWare Social v5 wallet seed"), iterations: 210000 }, material, 256);
+  const pkcs8 = concat(fromHex("302e020100300506032b657004220420"), new Uint8Array(bits));
+  const extractable = await crypto.subtle.importKey("pkcs8", pkcs8, { name: "Ed25519" }, true, ["sign"]);
+  const jwk = await crypto.subtle.exportKey("jwk", extractable);
+  const pub = b64url(jwk.x);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", pub));
+  const address = "cw" + hex(digest.slice(0, 20));
+  const privateKey = await crypto.subtle.importKey("pkcs8", pkcs8, { name: "Ed25519" }, false, ["sign"]);
+  return { address, publicKey: b64(pub), privateKey, seedPhrase: phrase };
+}
+
+/* ---------------- encryption ----------------
+   masterKey  = PBKDF2(recovery words, "chainWare Drive v1 encryption key")  → AES-256-GCM (never leaves the browser)
+   fileKey    = random 256 bit per file, stored only inside the encrypted file record
+   chunk      = AES-GCM(fileKey, iv=random12, aad="<fileId>:<index>")  → ciphertext is what goes on the chain
+   file name, size, folder, type and fileKey are sealed with the master key. */
+async function deriveDriveKey(phrase) {
+  const mat = await crypto.subtle.importKey("raw", enc.encode(phrase), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-512", salt: enc.encode("chainWare Drive v1 encryption key"), iterations: 210000 }, mat, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function aesEncrypt(key, bytes, aad) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: enc.encode(aad) }, key, bytes));
+  return concat(iv, ct);
+}
+async function aesDecrypt(key, blob, aad) {
+  return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: blob.slice(0, 12), additionalData: enc.encode(aad) }, key, blob.slice(12)));
+}
+const sealJSON = async (obj, aad) => b64(await aesEncrypt(S.master, enc.encode(JSON.stringify(obj)), aad));
+const openJSON = async (s, aad) => JSON.parse(dec.decode(await aesDecrypt(S.master, unb64(s), aad)));
+const importFileKey = raw => crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+//const chunkKey = (fid, i) => `drive:chunk:${fid}:${String(i).padStart(7, "0")}`;
+const chunkKey = (fid, i) => `media:chunk:${fid}:${String(i).padStart(6, "0")}`;
+
+/* ---------------- state ---------------- */
+const loadSettings = () => { try { return { chunkKB: 192, window: 1, ...JSON.parse(localStorage.getItem(LS_SET) || "{}") }; } catch { return { chunkKB: 192, window: 1 }; } };
+const S = { reqId: 1, wallet: null, master: null, l1: null, l2: null, l1Bal: 0n, l2Bal: 0n, reg: null, items: [], folder: "root", query: "", sort: { k: "name", d: 1 },
+  resolved: new Map(), jobs: [], running: false, listing: false, txMode: "", rawMode: "", l2Blocks: new Map(), settings: loadSettings(), jobSeq: 1, previewURL: "", tab: "files" };
+
+/* ---------------- RPC ---------------- */
+async function rpcRaw(base, method, params = {}) {
+  const response = await fetch(base.replace(/\/+$/, "") + "/", { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify({ jsonrpc: "2.0", id: S.reqId++, method, params }), cache: "no-store" });
+  const text = await response.text();
+  if (!response.ok) { const e = Error(response.status === 413 ? "RPC request exceeded the web proxy body limit (HTTP 413)." : `RPC HTTP ${response.status}: ${text.slice(0, 180)}`); e.httpStatus = response.status; throw e; }
+  const out = JSON.parse(text);
+  if (out.error) throw Error(out.error.data || out.error.message || "RPC error");
+  return { result: out.result, bytes: text.length };
+}
+const rpc = async (b, m, p) => (await rpcRaw(b, m, p)).result;
+async function queryB(base, path) {
+  const { result: r, bytes } = await rpcRaw(base, "abci_query", { path, data: "", prove: false }), x = r?.response || {};
+  if (Number(x.code || 0) !== 0) throw Error(x.log || `Query failed: ${path}`);
+  return { value: x.value ? JSON.parse(dec.decode(unb64(x.value))) : null, bytes };
+}
+const query = async (b, p) => (await queryB(b, p)).value;
+async function connectLayer(base, expected) {
+  const [status, cap, state] = await Promise.all([rpc(base, "status"), query(base, "/capabilities"), query(base, "/state")]);
+  if (String(cap?.Layer || state?.Layer || "") !== expected) throw Error(`${base} reports ${cap?.Layer || state?.Layer || "unknown layer"}, expected ${expected}.`);
+  return { base, status, cap, state, chainID: String(cap?.ChainID || state?.ChainID || status?.node_info?.network || "") };
+}
+const protocolVersion = l => Number(field(l?.cap, "ProtocolVersion", "protocol_version") || field(l?.state, "ProtocolVersion", "protocol_version") || 0);
+function apiHost() {
+  const raw = String(new URLSearchParams(location.search).get(API_PARAM) || DEFAULT_API).trim();
+  let host = raw;
+  try { const u = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`); if (u.protocol !== "https:") throw 0; host = u.hostname.toLowerCase(); } catch { throw Error(`Invalid validator in ?api=: ${raw}`); }
+  if (!host.includes(".") || host === "localhost") throw Error(`Invalid public validator hostname: ${raw}`);
+  return host;
+}
+const rpcURLForHost = h => `https://${h}${RPC_PATH}`;
+function normalizeRPCandidate(value) {
+  let raw = String(value || "").trim(); if (!raw) return "";
+  if (/^wss?:\/\//i.test(raw)) raw = raw.replace(/^wss?:\/\//i, "https://");
+  if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
+  try { const u = new URL(raw); if (u.protocol !== "https:" || !u.hostname) return ""; const path = u.pathname.replace(/\/+$/, ""); if (!path || path === "/" || !/\/chainware-rpc$/i.test(path)) u.pathname = RPC_PATH; u.search = ""; u.hash = ""; return u.toString().replace(/\/$/, ""); } catch { return ""; }
+}
+function collectL2Candidates(value, label = "", out = new Set(), depth = 0) {
+  if (depth > 7 || value === null || value === undefined) return out;
+  if (typeof value === "string") {
+    const keyOk = /(?:l2|layer.?2|storage).*(?:rpc|url|host|domain|endpoint)|(?:rpc|url|host|domain|endpoint).*(?:l2|layer.?2|storage)/i.test(String(label));
+    const valOk = /(?:https?:\/\/)?[a-z0-9.-]*l2[-_.][a-z0-9.-]*\.[a-z0-9.-]+/i.test(value);
+    if (keyOk || valOk) { const n = normalizeRPCandidate(value); if (n) out.add(n); }
+    return out;
+  }
+  if (Array.isArray(value)) { for (const x of value) collectL2Candidates(x, label, out, depth + 1); return out; }
+  if (typeof value === "object") for (const [k, v] of Object.entries(value)) collectL2Candidates(v, k, out, depth + 1);
+  return out;
+}
+async function discoverL2(l1, host) {
+  const cands = new Set();
+  collectL2Candidates(l1.cap, "capabilities", cands); collectL2Candidates(l1.state, "state", cands);
+  try { const r = await fetch(`https://${host}/chainware-bootstrap.json`, { cache: "no-store" }); if (r.ok) collectL2Candidates(await r.json(), "bootstrap", cands); } catch {}
+  for (const p of ["/network", "/bootstrap", "/l2"]) { try { collectL2Candidates(await query(l1.base, p), p, cands); } catch {} }
+  const paired = host.replace(/(^|[-.])l1(?=[-.])/i, "$1l2");
+  if (paired !== host) cands.add(rpcURLForHost(paired));
+  const expected = /^l1([_-].*)$/i.test(l1.chainID) ? l1.chainID.replace(/^l1/i, "l2") : "";
+  const errors = [];
+  for (const base of cands) {
+    try {
+      const l2 = await connectLayer(base, "layer-2");
+      if (expected && l2.chainID && l2.chainID !== expected) { errors.push(`${base} is ${l2.chainID}, expected ${expected}`); continue; }
+      const linked = String(field(l2.cap, "L1ChainID", "l1_chain_id", "SettlementChainID", "settlement_chain_id", "PairedL1ChainID", "paired_l1_chain_id") || field(l2.state, "L1ChainID", "l1_chain_id", "SettlementChainID", "settlement_chain_id", "PairedL1ChainID", "paired_l1_chain_id") || "");
+      if (linked && l1.chainID && linked !== l1.chainID) { errors.push(`${base} is paired with ${linked}`); continue; }
+      return l2;
+    } catch (e) { errors.push(`${base}: ${e.message}`); }
+  }
+  throw Error(`The L1 validator is valid, but no matching Layer 2 validator could be found${errors.length ? ". " + errors[0] : "."}`);
+}
+async function connect() {
+  const host = apiHost();
+  $("netLine").textContent = `Connecting to ${host}…`; $("netDot").className = "dot";
+  try {
+    const l1 = await connectLayer(rpcURLForHost(host), "layer-1"); S.l1 = l1;
+    S.l2 = await discoverL2(l1, host);
+    $("netLine").textContent = `Connected · ${S.l1.chainID} + ${S.l2.chainID} · protocol v${protocolVersion(S.l2)}`; $("netDot").className = "dot on";
+    return true;
+  } catch (e) { S.l1 = S.l2 = null; $("netLine").textContent = `Not connected: ${e.message}`; $("netDot").className = "dot off"; return false; }
+}
+
+/* ---------------- amounts ---------------- */
+const chainDecimals = () => { const n = Number(field(S.l1?.state, "Decimals", "decimals") ?? 12); return Number.isInteger(n) && n >= 0 && n <= 30 ? n : 12; };
+const chainDenom = () => String(field(S.l1?.state, "Denomination", "denomination") || "coin");
+function formatAtomic(value, suffix = true) {
+  try { let x = BigInt(String(value ?? "0")); const neg = x < 0n; if (neg) x = -x; const d = chainDecimals(), scale = 10n ** BigInt(d), whole = x / scale; let frac = d ? String(x % scale).padStart(d, "0").replace(/0+$/, "") : ""; if (frac.length > 6) frac = frac.slice(0, 6).replace(/0+$/, ""); const t = `${neg ? "-" : ""}${whole.toLocaleString("en-US")}${frac ? "." + frac : ""}`; return suffix ? `${t} ${chainDenom()}` : t; } catch { return String(value ?? "0"); }
+}
+function parseHumanAmount(v) {
+  const s = String(v || "").trim(); if (!/^\d+(?:\.\d+)?$/.test(s)) throw Error(`Enter a valid ${chainDenom()} amount.`);
+  const d = chainDecimals(), [w, f = ""] = s.split("."); if (f.length > d) throw Error(`${chainDenom()} uses at most ${d} decimal places.`);
+  const a = BigInt(w) * 10n ** BigInt(d) + BigInt((f + "0".repeat(d)).slice(0, d) || "0"); if (a <= 0n) throw Error("Amount must be greater than zero."); return a.toString();
+}
+
+/* ---------------- transactions (signing + commit tracking) ---------------- */
+const nonceOf = a => Number(a?.nonce ?? a?.Nonce ?? 0);
+const readAccount = async (layer, addr) => (await query(layer.base, `/account/${addr}`)) || { balance: "0", nonce: 0 };
+const dupMsg = v => /already exists|already in cache|duplicate|tx already exists/i.test(String(v?.message || v || ""));
+async function buildTx(layer, type, payload, nonce) {
+  const doc = { version: 1, chain_id: layer.chainID, type, gas: layer === S.l1 ? L1_FEE : "0", signer: S.wallet.address, nonce, payload: JSON.parse(canon(payload)), public_key: S.wallet.publicKey };
+  const bytes = enc.encode(goJSONStringify(doc));
+  const t = performance.now();
+  const sig = await crypto.subtle.sign({ name: "Ed25519" }, S.wallet.privateKey, bytes);
+  const signMs = performance.now() - t;
+  const raw = enc.encode(JSON.stringify({ ...doc, signature: b64(sig) }));
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", raw));
+  return { layer, type, raw, encoded: b64(raw), hash: hex(digest).toUpperCase(), hashB64: b64(digest), signMs, nonce };
+}
+async function findCommitted(p) {
+  const modes = S.txMode === "b64" ? [p.hashB64] : S.txMode === "hex" ? ["0x" + p.hash] : [p.hashB64, "0x" + p.hash];
+  for (const h of modes) {
+    try {
+      const r = await rpc(p.layer.base, "tx", { hash: h, prove: false });
+      const res = r?.tx_result || {};
+      if (Number(res.code || 0) !== 0) { const e = Error(res.log || "Committed transaction failed"); e.committedFailure = true; throw e; }
+      S.txMode = h === p.hashB64 ? "b64" : "hex";
+      return { height: Number(r?.height || 0) };
+    } catch (e) { if (e.committedFailure) throw e; }
+  }
+  return null;
+}
+async function sendTx(p) {
+  const t = performance.now();
+  try {
+    const r = await rpc(p.layer.base, "broadcast_tx_sync", { tx: p.encoded });
+    if (Number(r?.code || 0) !== 0) { const m = String(r?.log || r?.info || `${p.type} failed CheckTx.`); if (!dupMsg(m)) throw Error(m); }
+  } catch (e) { if (!dupMsg(e)) throw e; }
+  p.acceptedAt = performance.now(); p.sendMs = p.acceptedAt - t;
+}
+async function waitCommit(p, maxMs = 120000) {
+  const t0 = performance.now(); if (!p.acceptedAt) p.acceptedAt = t0;
+  while (performance.now() - t0 < maxMs) {
+    const f = await findCommitted(p);
+    if (f) { p.height = f.height; p.commitMs = performance.now() - p.acceptedAt; return f; }
+    await sleep(500);
+  }
+  throw Error(`${p.type} ${p.hash.slice(0, 12)}… passed CheckTx but was not found in a committed block after ${Math.round(maxMs / 1000)} seconds.`);
+}
+async function submitTx(p) {
+  try { await sendTx(p); }
+  catch (e) {
+    let f = null; try { f = await findCommitted(p); } catch (e2) { if (e2.committedFailure) throw e2; }
+    if (f) { p.height = f.height; p.commitMs = 0; p.sendMs = p.sendMs || 0; return p; }
+    p.acceptedAt = performance.now();
+    const pending = await waitCommit(p, 15000).catch(e3 => { if (e3.committedFailure) throw e3; return null; });
+    if (pending) return p;
+    await sendTx(p);
+  }
+  await waitCommit(p);
+  return p;
+}
+function record(stats, p) {
+  if (!stats) return;
+  stats.tx++; stats.wire += p.raw.length; acc(stats.rtt, p.rttMs); acc(stats.sign, p.signMs); acc(stats.send, p.sendMs); acc(stats.commit, p.commitMs);
+  if (p.height) { stats.lastHeight = p.height; stats.blocks.add(p.height); }
+}
+async function broadcast(layer, type, payload, stats) {
+  const a0 = performance.now(), acct = await readAccount(layer, S.wallet.address), rttMs = performance.now() - a0;
+  const p = await buildTx(layer, type, payload, nonceOf(acct) + 1); p.rttMs = rttMs;
+  await submitTx(p); record(stats, p); return p;
+}
+/* Optional speed boost: several consecutive-nonce transactions are sent back to back and committed together. */
+async function broadcastMany(layer, type, payloads, stats) {
+  const a0 = performance.now(), acct = await readAccount(layer, S.wallet.address), rttMs = performance.now() - a0;
+  let n = nonceOf(acct) + 1; const preps = [];
+  for (const pl of payloads) preps.push(await buildTx(layer, type, pl, n++));
+  preps[0].rttMs = rttMs;
+  const sent = []; let error = null;
+  for (const p of preps) { try { await sendTx(p); sent.push(p); } catch (e) { error = e; break; } }
+  const results = await Promise.allSettled(sent.map(p => waitCommit(p)));
+  const done = []; let broke = false;
+  results.forEach((r, i) => { if (broke) return; if (r.status === "fulfilled") { done.push(sent[i]); record(stats, sent[i]); } else { broke = true; error = error || r.reason; } });
+  return { done, error };
+}
+async function lookupTx(layer, hexHash) {
+  const h = String(hexHash).replace(/^0x/i, "").toUpperCase(), bytes = fromHex(h);
+  for (const hash of [b64(bytes), "0x" + h, h]) {
+    try { const hit = await rpc(layer.base, "tx", { hash, prove: false }); if (hit?.tx) return { tx: JSON.parse(dec.decode(unb64(hit.tx))), height: Number(hit.height || 0) }; } catch {}
+  }
+  return null;
+}
+async function waitReceipt(l2Hash, maxMs = 120000) {
+  if (protocolVersion(S.l2) < 6) return null;
+  const wanted = String(l2Hash).replace(/^0x/i, "").toUpperCase(), t0 = Date.now();
+  while (Date.now() - t0 < maxMs) {
+    try {
+      const all = await query(S.l2.base, "/l1-receipts");
+      for (const r of Object.values(all || {})) {
+        if (String(field(r, "kind", "Kind") || "").toUpperCase() === "POINTER" && String(field(r, "subject_l2_tx_hash", "SubjectL2TxHash") || "").replace(/^0x/i, "").toUpperCase() === wanted &&
+            String(field(r, "owner", "Owner") || "") === S.wallet.address && String(field(r, "l2_chain_id", "L2ChainID") || "") === S.l2.chainID && String(field(r, "status", "Status") || "").toUpperCase() === "ACCEPTED") return r;
+      }
+    } catch {}
+    await sleep(800);
+  }
+  throw Error(`The L1 pointer is committed, but the L2 validators did not reach receipt quorum for ${wanted.slice(0, 16)}… within 120 seconds.`);
+}
+async function walletRegistration() { try { return await query(S.l1.base, `/wallet-registration/${S.wallet.address}`); } catch { return null; } }
+async function ensureRegistered() {
+  const cur = await walletRegistration();
+  if (cur && (Number(field(cur, "registered_height", "RegisteredHeight") || 0) > 0 || field(cur, "registered", "Registered") === true)) return cur;
+  await broadcast(S.l1, "REGISTER_WALLET", {}, null);
+  return await walletRegistration();
+}
+/* L2 write first, then L1 pointer, then wait for receipt quorum (the chainWare v8 anchoring model). */
+async function anchored(l2Type, l2Payload, action, extra, phase) {
+  if (protocolVersion(S.l2) < 8) throw Error("chainDrive needs chainWare Protocol v8 (L2-first anchoring).");
+  phase?.("l2");
+  let l2;
+  try { l2 = await broadcast(S.l2, l2Type, l2Payload, null); }
+  catch (err) {
+    const m = String(err?.message || "").match(/pending L2 transaction\s+([0-9a-fA-F]{64})\s+awaiting its L1 pointer/i);
+    if (!m) throw err;
+    const found = await lookupTx(S.l2, m[1]);
+    if (!found || found.tx?.type !== l2Type || found.tx?.payload?.key !== l2Payload.key) throw Error(`An earlier write (${m[1].slice(0, 12)}…) is still waiting for its L1 pointer. ${err.message}`);
+    l2 = { hash: m[1].toUpperCase(), height: found.height, commitMs: null };
+  }
+  const l2Hash = String(l2.hash).replace(/^0x/i, "").toUpperCase();
+  phase?.("l1");
+  const l1 = await broadcast(S.l1, "L2_POINTER", { l2_chain_id: S.l2.chainID, l2_tx_hash: l2Hash, l2_height: l2.height, action, ...(extra || {}) }, null);
+  phase?.("receipt");
+  const t = performance.now(); await waitReceipt(l2Hash);
+  return { l2, l1, l2Hash, receiptMs: performance.now() - t };
+}
+/* If a chunk write is rejected because the same key already has a pending (committed on L2, not yet anchored)
+   transaction, check that pending transaction. Returns its L2 block height when it is a STORE for the same key
+   (so the chunk can be counted as stored), otherwise 0. */
+async function adoptPending(err, key) {
+  const m = String(err?.message || "").match(/pending L2 transaction\s+([0-9a-fA-F]{64})/i);
+  if (!m) return 0;
+  const found = await lookupTx(S.l2, m[1]);
+  return (found && found.tx?.type === "STORE" && found.tx?.payload?.key === key) ? (found.height || 1) : 0;
+}
+const createRecord = (key, content, action, phase) => anchored("STORE", { key, content }, action, {}, phase);
+const updateRecord = (key, content, phase) => anchored("STORE", { key, content }, ACT.UPDATE, { content_pointer: key }, phase);
+const removeRecord = (key, origHash, phase) => anchored("DELETE", { key }, ACT.DELETE, { content_pointer: key, ...(origHash ? { record_id: origHash } : {}) }, phase);
+
+async function l2Balance() { try { return BigInt(String(field(await readAccount(S.l2, S.wallet.address), "balance", "Balance") || "0")); } catch { return 0n; } }
+async function refreshWalletStats() {
+  if (!S.wallet || !S.l1 || !S.l2) return;
+  try {
+    const [a1, a2, reg] = await Promise.all([readAccount(S.l1, S.wallet.address), readAccount(S.l2, S.wallet.address), walletRegistration()]);
+    S.l1Bal = BigInt(String(field(a1, "balance", "Balance") || "0")); S.l2Bal = BigInt(String(field(a2, "balance", "Balance") || "0")); S.reg = reg;
+  } catch {}
+  $("balChip").textContent = `Storage: ${formatAtomic(S.l2Bal)}`;
+  renderSideFoot();
+}
+function requireFunding() { if (S.l2Bal <= 0n) throw Error(`Your storage balance is empty. Open Account and move some ${chainDenom()} from Layer 1 into storage first.`); }
+
+/* ---------------- pointers / records ---------------- */
+const pointerList = raw => Array.isArray(raw) ? raw : Object.values(raw || {});
+const pointerAction = p => String(field(p, "action", "Action") || "").toUpperCase();
+const pointerHeight = p => Number(p.created_height || p.CreatedHeight || 0);
+const pointerSigner = p => String(p.signer || p.Signer || "");
+const txHashOf = p => String(field(p, "l2_tx_hash", "L2TxHash") || "").replace(/^0x/i, "").toUpperCase();
+async function loadL2RawTx(p) {
+  const h = txHashOf(p); if (!h) throw Error("Pointer has no L2 transaction hash.");
+  const bytes = fromHex(h), modes = S.rawMode === "b64" ? [["b64", b64(bytes)]] : S.rawMode === "hex" ? [["hex", "0x" + h]] : [["b64", b64(bytes)], ["hex", "0x" + h]];
+  for (const [mode, hash] of modes) { try { const r = await rpc(S.l2.base, "tx", { hash, prove: false }); if (r?.tx) { S.rawMode = mode; return unb64(r.tx); } } catch {} }
+  const height = Number(field(p, "l2_height", "L2Height") || 0);
+  if (height < 1) throw Error(`L2 transaction ${h.slice(0, 12)}… could not be found.`);
+  let block = S.l2Blocks.get(height);
+  if (!block) { block = await rpc(S.l2.base, "block", { height: String(height) }); S.l2Blocks.set(height, block); }
+  for (const e of block?.block?.data?.txs || []) { const rb = unb64(e); if (hex(new Uint8Array(await crypto.subtle.digest("SHA-256", rb))).toUpperCase() === h) return rb; }
+  throw Error(`L2 transaction ${h.slice(0, 12)}… could not be found at height ${height}.`);
+}
+async function resolvePointer(p) {
+  const raw = JSON.parse(dec.decode(await loadL2RawTx(p))), pl = raw?.payload || {};
+  const key = String(field(pl, "key", "Key") || "");
+  let content = pl.content ?? pl.Content;
+  if (content == null && key && raw.type === "STORE") { try { const rec = await query(S.l2.base, `/content/${key}`); content = rec?.content ?? rec?.Content; } catch {} }
+  return { pointer: p, key, content, signer: String(raw?.signer || ""), type: raw?.type };
+}
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length); let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => { while (next < items.length) { const i = next++; try { out[i] = await fn(items[i], i); } catch (e) { out[i] = { error: e }; } } }));
+  return out;
+}
+async function chunkOnChain(fid, i) {
+  try { const rec = await query(S.l2.base, `/content/${chunkKey(fid, i)}`), c = rec?.content ?? rec?.Content ?? rec ?? {}; return c?.kind === "drive_chunk" && c.fid === fid && Number(c.index) === i; } catch { return false; }
+}
+
+/* ---------------- drive model ---------------- */
+const MIME = { mp4: "video/mp4", m4v: "video/mp4", mov: "video/quicktime", mkv: "video/x-matroska", webm: "video/webm", avi: "video/x-msvideo", mp3: "audio/mpeg", wav: "audio/wav", flac: "audio/flac", m4a: "audio/mp4", ogg: "audio/ogg", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml", pdf: "application/pdf", txt: "text/plain", md: "text/markdown", json: "application/json", csv: "text/csv", zip: "application/zip" };
+const guessMime = f => f.type || MIME[String(f.name).split(".").pop().toLowerCase()] || "application/octet-stream";
+function iconFor(it) {
+  if (it.type === "folder") return "📁";
+  const m = String(it.mime || "").toLowerCase(), n = String(it.name || "").toLowerCase();
+  if (m.startsWith("video/")) return "🎬"; if (m.startsWith("audio/")) return "🎵"; if (m.startsWith("image/")) return "🖼️"; if (m === "application/pdf") return "📕";
+  if (/zip|rar|7z|tar|gz/.test(m + n)) return "🗜️"; if (m.startsWith("text/") || /\.(md|json|csv|log)$/.test(n)) return "📝"; return "📄";
+}
+const previewKind = it => { const m = String(it.mime || "").toLowerCase(); return m.startsWith("video/") ? "video" : m.startsWith("audio/") ? "audio" : m.startsWith("image/") ? "image" : m === "application/pdf" ? "pdf" : (m.startsWith("text/") || m === "application/json") ? "text" : ""; };
+function itemFrom(key, kind, m, origHash, l2Height) {
+  const folder = kind === "drive_folder";
+  return { type: folder ? "folder" : "file", key, id: key.split(":").pop(), name: m.name || "(unnamed)", size: Number(m.size || 0), mime: m.mime || "", folder: (folder ? m.parent : m.folder) || "root", created: m.created, modified: m.modified || m.created, meta: m, origHash, l2Height };
+}
+async function refreshFiles(silent) {
+  if (S.listing || !S.l1 || !S.l2) return; S.listing = true;
+  if (!silent) setStatus("Reading your drive from the chain…", true);
+  try {
+    S.pointers = pointerList(await query(S.l1.base, "/l2-pointers"));
+    const mine = S.pointers.filter(p => pointerSigner(p) === S.wallet.address && pointerAction(p).startsWith("DRIVE_")).sort((a, b) => pointerHeight(a) - pointerHeight(b));
+    const res = await mapLimit(mine, 10, async p => { const h = txHashOf(p); let r = S.resolved.get(h); if (!r) { r = await resolvePointer(p); S.resolved.set(h, r); } return r; });
+    const deleted = new Set(), ents = new Map(); let failed = 0;
+    for (const r of res) {
+      if (!r || r.error) { failed++; continue; }
+      if (r.signer && r.signer !== S.wallet.address) continue;
+      if (pointerAction(r.pointer) === ACT.DELETE) { deleted.add(r.key); continue; }
+      const c = r.content; if (!c || (c.kind !== "drive_file" && c.kind !== "drive_folder")) continue;
+      let e = ents.get(r.key); if (!e) { e = { key: r.key, kind: c.kind, origHash: txHashOf(r.pointer) }; ents.set(r.key, e); }
+      e.content = c; e.l2Height = Number(field(r.pointer, "l2_height", "L2Height") || 0);
+    }
+    const items = []; let locked = 0;
+    for (const e of ents.values()) {
+      if (deleted.has(e.key)) continue;
+      try { items.push(itemFrom(e.key, e.kind, await openJSON(e.content.sealed, "meta:" + e.key), e.origHash, e.l2Height)); } catch { locked++; }
+    }
+    /* keep entries that were just written but are not indexed on L1 yet */
+    for (const old of S.items) if (old.fresh && !items.some(i => i.key === old.key) && !deleted.has(old.key)) items.push(old);
+    S.items = items;
+    render();
+    setStatus(failed || locked ? `${items.length} items · ${failed ? failed + " records unreadable " : ""}${locked ? locked + " could not be decrypted" : ""}` : `${items.length} item${items.length === 1 ? "" : "s"} · synced`, false);
+  } catch (e) { setStatus("Could not read the drive: " + e.message, false); }
+  finally { S.listing = false; }
+}
+
+/* ---------------- rendering ---------------- */
+function setStatus(t, busy) { $("statusLine").innerHTML = (busy ? '<span class="spin"></span>' : "") + esc(t); }
+function toast(msg, kind = "") { const el = document.createElement("div"); el.className = "toast " + kind; el.textContent = msg; $("toasts").appendChild(el); setTimeout(() => el.remove(), kind === "bad" ? 7000 : 3500); }
+const byKey = k => S.items.find(i => i.id === k || i.key === k);
+function folderPath(id) { const path = []; let cur = id, guard = 0; while (cur && cur !== "root" && guard++ < 50) { const f = S.items.find(i => i.type === "folder" && i.id === cur); if (!f) break; path.unshift(f); cur = f.folder; } return path; }
+function descendants(id) { const out = new Set([id]); let grew = true; while (grew) { grew = false; for (const i of S.items) if (i.type === "folder" && !out.has(i.id) && out.has(i.folder)) { out.add(i.id); grew = true; } } return out; }
+function render() {
+  const q = S.query.trim().toLowerCase();
+  const crumbs = [{ id: "root", name: "My files" }, ...folderPath(S.folder).map(f => ({ id: f.id, name: f.name }))];
+  $("crumbs").innerHTML = q ? `<span>Search results for “${esc(q)}”</span>` : crumbs.map((c, i) => `${i ? "<i>›</i>" : ""}<a data-folder="${esc(c.id)}">${esc(c.name)}</a>`).join("");
+  let list = q ? S.items.filter(i => i.name.toLowerCase().includes(q)) : S.items.filter(i => i.folder === S.folder);
+  const { k, d } = S.sort;
+  list.sort((a, b) => (a.type !== b.type ? (a.type === "folder" ? -1 : 1) : (k === "size" ? a.size - b.size : k === "modified" ? String(a.modified).localeCompare(String(b.modified)) : a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })) * d));
+  $("rows").innerHTML = list.map(it => {
+    const count = it.type === "folder" ? S.items.filter(x => x.folder === it.id).length : 0;
+    return `<tr data-key="${esc(it.key)}"><td><div class="nm"><span class="ic">${iconFor(it)}</span><a class="name" data-act="open">${esc(it.name)}</a>${it.type === "file" ? '<span class="lock" title="Encrypted end to end">🔒</span>' : ""}</div></td>
+<td class="hide-s muted">${esc(fmtDate(it.modified))}</td><td class="muted">${it.type === "folder" ? count + " item" + (count === 1 ? "" : "s") : fmtBytes(it.size)}</td>
+<td class="acts">${it.type === "file" ? '<button data-act="download" title="Download">⬇</button>' : ""}${it.type === "file" && previewKind(it) ? '<button data-act="preview" title="Preview">👁</button>' : ""}<button data-act="rename" title="Rename">✏️</button><button data-act="move" title="Move">📂</button><button data-act="delete" title="Delete">🗑</button></td></tr>`;
+  }).join("");
+  const empty = $("emptyBox");
+  empty.classList.toggle("hidden", list.length > 0);
+  empty.innerHTML = q ? "<b>No matches</b>Nothing in your drive matches that search." : "<b>This folder is empty</b>Drop files here or press Upload. They are encrypted before leaving your browser.";
+  renderSideFoot();
+}
+function renderSideFoot() {
+  const files = S.items.filter(i => i.type === "file"), total = files.reduce((s, i) => s + i.size, 0);
+  $("sideFoot").innerHTML = `<b>${files.length}</b> file${files.length === 1 ? "" : "s"} · ${fmtBytes(total)}<br>Storage balance: ${esc(formatAtomic(S.l2Bal))}`;
+}
+
+/* ---------------- upload sessions (resume after reload / failure) ---------------- */
+const readSess = () => { try { const o = JSON.parse(localStorage.getItem(LS_SESS) || "{}"); return o && typeof o === "object" ? o : {}; } catch { return {}; } };
+function writeSess(m) {
+  const now = Date.now(); let rows = Object.entries(m).filter(([, s]) => s && now - (s.updated || 0) < 14 * 864e5).sort((a, b) => b[1].updated - a[1].updated).slice(0, 30);
+  for (let t = 0; t < 4; t++) { try { localStorage.setItem(LS_SESS, JSON.stringify(Object.fromEntries(rows))); return; } catch { if (rows.length <= 1) return; rows.pop(); } }
+}
+const loadSess = fp => readSess()[fp] || null;
+const saveSess = s => { s.updated = Date.now(); const m = readSess(); m[s.fp] = s; writeSess(m); };
+const dropSess = fp => { const m = readSess(); if (m[fp]) { delete m[fp]; writeSess(m); } };
+
+/* ---------------- transfers ---------------- */
+const newStats = () => ({ tx: 0, wire: 0, rtt: newAcc(), sign: newAcc(), send: newAcc(), commit: newAcc(), enc: newAcc(), dec: newAcc(), fetch: newAcc(), encBytes: 0, lastHeight: 0, blocks: new Set() });
+const is413 = e => Number(e?.httpStatus || 0) === 413 || /\b413\b|request entity too large|body limit/i.test(String(e?.message || e));
+const cancelErr = () => { const e = Error("Cancelled"); e.cancelled = true; return e; };
+async function waitOnline(maxMs = 90000) { if (navigator.onLine !== false) return; await new Promise(res => { const done = () => { clearTimeout(t); removeEventListener("online", done); res(); }; const t = setTimeout(done, maxMs); addEventListener("online", done); }); }
+function setPhase(job, t) { job.phase = t; }
+function pushSample(job) { const now = performance.now(); job.samples.push({ t: now, b: job.done }); while (job.samples.length > 2 && now - job.samples[1].t > 30000) job.samples.shift(); const s = speedNow(job); if (s > job.peak) job.peak = s; }
+function speedNow(job) {
+  if (job.state !== "running" || job.samples.length < 1) return 0;
+  const now = performance.now(); let base = job.samples[0];
+  for (const s of job.samples) { if (now - s.t >= 10000) base = s; else break; }
+  const dt = (now - base.t) / 1000; return dt > 0.2 ? Math.max(0, (job.done - base.b) / dt) : 0;
+}
+const speedAvg = job => { const el = ((job.endAt || performance.now()) - (job.xferStart || job.startAt || performance.now())) / 1000; return el > 0.2 ? (job.done - (job.resumed || 0)) / el : 0; };
+
+function enqueueUploads(files, folder) {
+  if (!files.length) return;
+  for (const file of files) {
+    const j = { id: S.jobSeq++, type: "upload", file, name: file.name, size: file.size, mime: guessMime(file), folder, state: "queued", phase: "Waiting in queue", done: 0, resumed: 0, samples: [], peak: 0, stats: newStats(), window: S.settings.window, expanded: S.jobs.every(x => x.state !== "running" && x.state !== "queued"), final: null };
+    S.jobs.push(j);
+  }
+  showXfer(true); pump(); renderJobs();
+}
+async function pump() {
+  if (S.running) return; S.running = true;
+  try {
+    for (;;) {
+      const job = S.jobs.find(j => j.state === "queued"); if (!job) break;
+      try { await runUpload(job); }
+      catch (e) {
+        if (e.cancelled) { job.state = "cancelled"; job.phase = "Cancelled. Progress is saved; add the same file again to resume."; }
+        else { job.state = "error"; job.error = e.message; job.phase = "Stopped"; }
+        job.endAt = performance.now();
+      }
+      renderJobs();
+    }
+  } finally { S.running = false; releaseWake(); }
+}
+let wake = null;
+async function holdWake() { try { if (navigator.wakeLock && !wake) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } } catch {} }
+function releaseWake() { try { wake?.release(); } catch {} wake = null; }
+
+async function runUpload(job) {
+  const file = job.file, st = job.stats;
+  job.state = "running"; job.startAt = performance.now(); holdWake(); setPhase(job, "Checking wallet and storage balance");
+  await ensureRegistered(); await refreshWalletStats(); requireFunding();
+  job.balStart = S.l2Bal;
+  const fp = [S.wallet.address, S.l2.chainID, file.name, file.size, file.lastModified].join("|");
+  let chunkBytes = loadSess(fp)?.chunkBytes || S.settings.chunkKB * 1024;
+  for (;;) {
+    let sess = loadSess(fp), fkeyRaw;
+    if (sess && (sess.size !== file.size || sess.chunkBytes !== chunkBytes)) { dropSess(fp); sess = null; }
+    if (sess) { try { fkeyRaw = await aesDecrypt(S.master, unb64(sess.fk), "fkey:" + sess.fid); } catch { dropSess(fp); sess = null; } }
+    if (!sess) {
+      const fid = randomID(); fkeyRaw = crypto.getRandomValues(new Uint8Array(32));
+      sess = { fp, fid, fk: b64(await aesEncrypt(S.master, fkeyRaw, "fkey:" + fid)), chunkBytes, size: file.size, count: Math.ceil(file.size / chunkBytes), done: 0 };
+      saveSess(sess);
+    }
+    const fid = sess.fid, count = sess.count, fileKey = await importFileKey(fkeyRaw);
+    const plainLen = i => Math.min(chunkBytes, file.size - i * chunkBytes);
+    setPhase(job, "Checking for earlier progress on this file");
+    /* sess.done is saved only after a chunk's commit was confirmed, so it can be trusted without re-querying
+       /content (chunks that are committed on L2 but not yet anchored on L1 are not visible there). */
+    let done = Math.min(sess.done | 0, count);
+    while (done < count && (await chunkOnChain(fid, done))) done++;
+    job.chunkBytes = chunkBytes; job.count = count; job.fid = fid;
+    job.resumed = Math.min(done * chunkBytes, file.size); job.done = job.resumed; job.chunksDone = done;
+    job.xferStart = performance.now(); job.samples = [{ t: job.xferStart, b: job.done }];
+    let attempts = 0, smaller = false;
+    while (done < count) {
+      if (job.cancelled) throw cancelErr();
+      const win = Math.max(1, Math.min(job.window, count - done)), batch = [];
+      setPhase(job, win > 1 ? `Encrypting and committing chunks (${win} at a time)` : "Encrypting and committing chunks");
+      for (let k = 0; k < win; k++) {
+        const i = done + k, begin = i * chunkBytes, plain = new Uint8Array(await file.slice(begin, begin + plainLen(i)).arrayBuffer());
+        const t = performance.now(), cipher = await aesEncrypt(fileKey, plain, `${fid}:${i}`); acc(st.enc, performance.now() - t); st.encBytes += plain.length;
+        batch.push({ len: plain.length, payload: { key: chunkKey(fid, i), content: { kind: "drive_chunk", v: 1, fid, index: i, total: count, bytes: plain.length, data: b64(cipher) } } });
+      }
+      job.inflight = win; let committed = [], err = null;
+      try {
+        if (win === 1) {
+          try { committed = [await broadcast(S.l2, "STORE", batch[0].payload, st)]; }
+          catch (e) { const h = await adoptPending(e, batch[0].payload.key); if (h) committed = [{ height: h }]; else throw e; }
+        } else {
+          const r = await broadcastMany(S.l2, "STORE", batch.map(b => b.payload), st);
+          committed = r.done; err = r.error;
+          let h; if (err && committed.length < batch.length && (h = await adoptPending(err, batch[committed.length].payload.key))) { committed.push({ height: h }); err = null; }
+        }
+      } catch (e) { err = e; }
+      job.inflight = 0;
+      for (let k = 0; k < committed.length; k++) { done++; job.done = Math.min(file.size, job.done + batch[k].len); job.chunksDone = done; pushSample(job); }
+      /* remember the lowest L2 block height used by this file's chunks, so downloads know where to scan from */
+      for (const c of committed) if (c.height) sess.h0 = Math.min(sess.h0 || Infinity, c.height);
+      sess.done = done; saveSess(sess);
+      if (!err) { attempts = 0; continue; }
+      if (job.cancelled) throw cancelErr();
+      if (done === 0 && is413(err) && chunkBytes > CHUNK_MIN) { chunkBytes = Math.max(CHUNK_MIN, Math.floor(chunkBytes / 2)); dropSess(fp); smaller = true; job.note = `The validator's proxy limits request size; continuing with ${fmtBytes(chunkBytes)} chunks.`; break; }
+      if (++attempts >= ATTEMPTS) { const e = Error(`Upload interrupted at chunk ${done + 1} of ${count}. Progress is saved. Press Retry (or add the same file again) to continue. (${err.message})`); throw e; }
+      if (win > 1) { job.window = 1; job.note = "The validator did not accept parallel commits, continuing one chunk at a time."; }
+      setPhase(job, `Chunk ${done + 1} failed (${String(err.message).slice(0, 70)}). Retry ${attempts}/${ATTEMPTS - 1}…`);
+      await waitOnline(); await sleep(1500 * attempts);
+      while (done < count && (await chunkOnChain(fid, done))) { job.done = Math.min(file.size, job.done + plainLen(done)); done++; job.chunksDone = done; }
+      sess.done = done; saveSess(sess);
+    }
+    if (smaller) continue;
+    /* encrypted file record: name, size, type, folder and the file key are sealed with the master key */
+    const iso = new Date().toISOString(), key = `drive:file:${fid}`;
+    const meta = { v: 1, name: job.name, size: file.size, mime: job.mime, folder: job.folder, created: iso, modified: iso, chunks: count, chunkBytes, fkey: b64(fkeyRaw), h0: sess.h0 || 0 };
+    const content = { kind: "drive_file", v: 1, id: fid, sealed: await sealJSON(meta, "meta:" + key) };
+    const labels = { l2: "Writing the encrypted file record to Layer 2", l1: "Anchoring the pointer on Layer 1", receipt: "Waiting for validator receipt quorum" };
+    job.recordStart = performance.now();
+    const r = await createRecord(key, content, ACT.FILE, ph => setPhase(job, labels[ph]));
+    job.final = { l2Ms: r.l2.commitMs, l1Ms: r.l1.commitMs, receiptMs: r.receiptMs, l2Height: r.l2.height, l1Height: r.l1.height, totalMs: performance.now() - job.recordStart };
+    dropSess(fp);
+    const it = itemFrom(key, "drive_file", meta, r.l2Hash, r.l2.height); it.fresh = true; S.items.push(it);
+    job.state = "done"; job.endAt = performance.now(); job.phase = "Done · encrypted and stored"; job.done = file.size; render();
+    await refreshWalletStats(); job.balEnd = S.l2Bal;
+    break;
+  }
+}
+function retryJob(job) { job.state = "queued"; job.error = ""; job.cancelled = false; job.note = ""; job.phase = "Waiting in queue"; job.stats = newStats(); job.window = S.settings.window; job.final = null; delete job.endAt; pump(); renderJobs(); }
+
+/* ---------------- download ---------------- */
+function startDownload(item, preview) {
+  const job = { id: S.jobSeq++, type: "download", item, name: item.name, size: item.size, mime: item.mime, preview: !!preview, state: "queued", phase: "Starting", done: 0, samples: [], peak: 0, stats: newStats(), expanded: true, resumed: 0, count: item.meta.chunks, chunksDone: 0 };
+  if (!preview && window.showSaveFilePicker) job.picker = window.showSaveFilePicker({ suggestedName: item.name }).catch(e => (e && e.name === "AbortError") ? null : undefined);
+  if (!window.showSaveFilePicker && !preview && item.size > 1.5 * 1024 ** 3) toast("This browser keeps downloads in memory. For multi-GB files use Chrome or Edge.", "bad");
+  S.jobs.push(job); showXfer(true); renderJobs();
+  runDownload(job).catch(e => { job.state = e.cancelled ? "cancelled" : "error"; job.error = e.cancelled ? "" : e.message; job.phase = e.cancelled ? "Cancelled" : "Stopped"; job.endAt = performance.now(); renderJobs(); });
+}
+async function decodedTxByHex(layer, hexHash) {
+  const h = String(hexHash || "").trim().replace(/^0x/i, "").toUpperCase(), bytes = fromHex(h);
+  const candidates = [b64(bytes), "0x" + h, h];
+  let last = null;
+  for (const hash of candidates) {
+    try {
+      const hit = await rpc(layer.base, "tx", { hash, prove: false });
+      if (!hit?.tx) continue;
+      const raw = dec.decode(unb64(hit.tx));
+      const tx = JSON.parse(raw);
+      return { tx, height: Number(hit.height || 0), hash: h };
+    } catch (e) { last = e; }
+  }
+  throw last || Error(`Transaction ${h} was not found.`);
+}
+const chunkCache = new Map();
+async function fetchChunkData(fid, i, it) {
+  const cacheKey = `${fid}:${i}`;
+  if (chunkCache.has(cacheKey)) {
+    return chunkCache.get(cacheKey);
+  }
+
+  // 1. If chunk info with transaction hash exists in item's meta.chunkList
+  const chunkList = it?.meta?.chunkList || [];
+  const chunkInfo = chunkList[i];
+  if (chunkInfo?.tx_hash) {
+    try {
+      const hit = await decodedTxByHex(S.l2, chunkInfo.tx_hash);
+      const c = hit?.tx?.payload?.content;
+      if (c && (c.data || c.Data)) {
+        chunkCache.set(cacheKey, c);
+        return c;
+      }
+    } catch {}
+  }
+
+  // 2. Query /content/ using media:chunk
+  const keysToTry = [];
+  if (chunkInfo?.key) keysToTry.push(chunkInfo.key);
+  keysToTry.push(chunkKey(fid, i));
+
+  for (const k of keysToTry) {
+    try {
+      const got = await queryB(S.l2.base, `/content/${k}`);
+      const c = got?.value?.content ?? got?.value?.Content ?? got?.value ?? {};
+      if (c && (c.data || c.Data)) {
+        chunkCache.set(cacheKey, c);
+        return c;
+      }
+    } catch {}
+  }
+
+  // 3. Scan blocks backward from the file record anchor height.
+  // Chunks committed on L2 but not anchored on L1 are only readable from the blocks themselves.
+  // meta.h0 (written at upload time) is the lowest block height used by this file's chunks;
+  // older files without it fall back to a window below the file record.
+  const anchorHeight = Number(it?.l2Height || it?.meta?.l2Height || 0);
+  if (anchorHeight > 0) {
+    const h0 = Number(it?.meta?.h0 || 0);
+    const minHeight = h0 > 0
+      ? Math.max(1, h0 - 2)
+      : Math.max(1, anchorHeight - Math.max(80, Number(it?.meta?.chunks || 1) * 8));
+    for (let h = anchorHeight - 1; h >= minHeight; h--) {
+      try {
+        let block = S.l2Blocks.get(h);
+        if (!block) {
+          block = await rpc(S.l2.base, "block", { height: String(h) });
+          if (block) S.l2Blocks.set(h, block);
+        }
+        for (const rawB64 of block?.block?.data?.txs || []) {
+          try {
+            const tx = JSON.parse(dec.decode(unb64(rawB64)));
+            const pl = tx?.payload || {};
+            const c = pl.content;
+            if (c && (c.data || c.Data) && (c.fid === fid || c.media_id === fid || (pl.key && pl.key.includes(fid)))) {
+              const idx = Number(c.index != null ? c.index : i);
+              if (!isNaN(idx)) {
+                chunkCache.set(`${fid}:${idx}`, c);
+              }
+            }
+          } catch {}
+        }
+        if (chunkCache.has(cacheKey)) {
+          return chunkCache.get(cacheKey);
+        }
+      } catch {}
+    }
+  }
+
+  // 4. Try bounded tx_search around anchorHeight if not yet found
+  if (anchorHeight > 0) {
+    try {
+      const minH = Math.max(1, anchorHeight - 120);
+      const res = await rpc(S.l2.base, "tx_search", {
+        query: `tx.height >= ${minH} AND tx.height <= ${anchorHeight}`,
+        prove: false,
+        page: "1",
+        per_page: "25"
+      });
+      for (const t of res?.txs || []) {
+        try {
+          const tx = JSON.parse(dec.decode(unb64(t.tx)));
+          const pl = tx?.payload || {};
+          const c = pl.content;
+          if (c && (c.data || c.Data) && (c.fid === fid || c.media_id === fid || (pl.key && pl.key.includes(fid)))) {
+            const idx = Number(c.index != null ? c.index : i);
+            if (!isNaN(idx)) {
+              chunkCache.set(`${fid}:${idx}`, c);
+            }
+          }
+        } catch {}
+      }
+      if (chunkCache.has(cacheKey)) {
+        return chunkCache.get(cacheKey);
+      }
+    } catch {}
+  }
+
+  throw Error(`Chunk ${i + 1} not found on chain.`);
+}
+
+async function runDownload(job) {
+  const it = job.item, m = it.meta, fid = it.id, count = Number(m.chunks || 0), st = job.stats;
+  job.state = "running"; job.startAt = performance.now(); job.xferStart = job.startAt; job.samples = [{ t: job.startAt, b: 0 }]; holdWake();
+  let handle = null;
+  if (job.picker) { handle = await job.picker; if (handle === null) throw cancelErr(); }
+  setPhase(job, "Preparing decryption key");
+  const fileKey = await importFileKey(unb64(m.fkey));
+  let writable = null; if (handle) writable = await handle.createWritable();
+  const parts = [], buf = new Map(); let next = 0, nextWrite = 0, err = null, writing = Promise.resolve();
+  const flush = () => { while (buf.has(nextWrite)) { const bytes = buf.get(nextWrite); buf.delete(nextWrite); nextWrite++; if (writable) writing = writing.then(() => writable.write(bytes)); else parts.push(bytes); } };
+  setPhase(job, "Downloading and decrypting chunks");
+  async function worker() {
+    while (!err && !job.cancelled) {
+      const i = next; if (i >= count) return;
+      if (i - nextWrite > 32) { await sleep(40); continue; }
+      next++;
+      try {
+        let c = null;
+        for (let a = 1; a <= 3 && !c; a++) {
+          const t0 = performance.now();
+          try {
+            c = await fetchChunkData(fid, i, it);
+            acc(st.fetch, performance.now() - t0);
+            st.tx++;
+          } catch (e) {
+            if (a === 3) throw e;
+            await sleep(700 * a);
+          }
+        }
+        const dataB64 = c?.data || c?.Data;
+        if (!dataB64) throw Error(`Chunk ${i + 1} is missing data on chain.`);
+        const cipherBytes = unb64(dataB64);
+        st.wire += cipherBytes.length;
+        const t1 = performance.now();
+        const plain = await aesDecrypt(fileKey, cipherBytes, `${fid}:${i}`);
+        acc(st.dec, performance.now() - t1);
+        buf.set(i, plain); flush(); job.done += plain.length; job.chunksDone++; pushSample(job);
+      } catch (e) { err = err || e; }
+    }
+  }
+  await Promise.all(Array.from({ length: 4 }, worker));
+  if (err || job.cancelled) { try { await writing; await writable?.abort(); } catch {} throw job.cancelled ? cancelErr() : Error(err.name === "OperationError" ? "Decryption failed: the data is damaged or the key does not match." : err.message); }
+  setPhase(job, "Finishing file assembly"); await writing; flush(); await writing;
+  if (writable) await writable.close();
+  let blob = null; if (!writable) blob = new Blob(parts, { type: job.mime || "application/octet-stream" });
+  job.state = "done"; job.endAt = performance.now(); job.done = it.size; job.phase = writable ? "Saved to your chosen location" : (job.preview ? "Ready to preview" : "Done");
+  releaseWake(); renderJobs();
+  if (job.preview) showPreview(it, blob);
+  else if (blob) { const url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = it.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 120000); }
+}
+
+/* ---------------- transfers panel ---------------- */
+function showXfer(show) { $("xfer").classList.toggle("hidden", !show && !S.jobs.length); if (show) $("xfer").classList.remove("min"); }
+const kv = (k, v, wide) => `<div${wide ? ' class="wide"' : ""}><span>${esc(k)}</span><b>${v}</b></div>`;
+function jobDetails(j) {
+  const st = j.stats, now = performance.now(), end = j.endAt || now, elapsed = end - (j.xferStart || j.startAt || now), sNow = speedNow(j), sAvg = speedAvg(j);
+  const rest = Math.max(0, j.size - j.done), rate = sNow > 0 ? sNow : sAvg, eta = j.state === "running" && rate > 0 ? rest / rate * 1000 : null;
+  let h = `<div class="kv">`;
+  h += `<div class="h">${j.type === "upload" ? "Upload" : "Download"}</div>`;
+  h += kv("Progress", `${fmtBytes(j.done)} of ${fmtBytes(j.size)} (${j.size ? (j.done / j.size * 100).toFixed(1) : 100}%)`);
+  h += kv("Chunks", `${j.chunksDone || 0} of ${j.count || 0}${j.inflight ? ` · ${j.inflight} in flight` : ""}${j.chunkBytes ? ` · ${fmtBytes(j.chunkBytes)} each` : ""}`);
+  h += kv(j.type === "upload" ? "Upload speed now" : "Download speed now", fmtSpeed(sNow));
+  h += kv("Average speed", fmtSpeed(sAvg));
+  h += kv("Peak speed", fmtSpeed(j.peak));
+  h += kv("Elapsed · ETA", `${fmtDur(elapsed)} · ${j.state === "running" ? fmtDur(eta) : "—"}`);
+  if (j.resumed) h += kv("Resumed from", `${fmtBytes(j.resumed)} already on chain`, true);
+  if (j.type === "upload") {
+    h += `<div class="h">Per transaction (each chunk is one Layer 2 transaction)</div>`;
+    h += kv("Commit wait (send → block)", accTxt(st.commit), true);
+    h += kv("Sending (broadcast)", accTxt(st.send), true);
+    h += kv("Nonce lookup", accTxt(st.rtt), true);
+    h += kv("Signing", accTxt(st.sign));
+    h += kv("Encryption", `${accTxt(st.enc)}${st.enc.sum > 0 ? " · " + fmtBytes(st.encBytes / (st.enc.sum / 1000)) + "/s" : ""}`);
+    h += kv("Transactions", `${st.tx} · ${st.blocks.size} distinct blocks`);
+    h += kv("Last L2 block", st.lastHeight ? st.lastHeight.toLocaleString() : "—");
+    h += kv("Sent on the wire", `${fmtBytes(st.wire)}${j.done > j.resumed ? ` (+${Math.max(0, Math.round((st.wire / Math.max(1, j.done - j.resumed) - 1) * 100))}% overhead)` : ""}`, true);
+    h += kv("Parallel commits", `${j.window} at a time`);
+    if (j.final) {
+      h += `<div class="h">Finalizing (file record + anchoring)</div>`;
+      h += kv("L2 record commit", fmtMs(j.final.l2Ms)); h += kv("L1 pointer commit", fmtMs(j.final.l1Ms));
+      h += kv("Receipt quorum wait", fmtMs(j.final.receiptMs)); h += kv("Finalizing total", fmtMs(j.final.totalMs));
+      h += kv("L2 block · L1 block", `${j.final.l2Height.toLocaleString()} · ${j.final.l1Height.toLocaleString()}`, true);
+    }
+    if (j.balStart != null && j.balEnd != null) h += kv("Storage cost (balance change)", esc(formatAtomic((j.balStart - j.balEnd).toString())), true);
+    h += kv("Encryption", "AES-256-GCM, encrypted in this browser", true);
+  } else {
+    h += `<div class="h">Per chunk</div>`;
+    h += kv("Fetch time", accTxt(st.fetch), true);
+    h += kv("Decrypt time", accTxt(st.dec), true);
+    h += kv("Downloaded from chain", fmtBytes(st.wire), true);
+  }
+  if (j.note) h += kv("Note", esc(j.note), true);
+  return h + "</div>";
+}
+function jobHTML(j) {
+  const pct = j.size ? Math.min(100, j.done / j.size * 100) : (j.state === "done" ? 100 : 0), sNow = speedNow(j);
+  const summary = j.state === "running" ? `${fmtBytes(j.done)} of ${fmtBytes(j.size)} · ${fmtSpeed(sNow)}` : j.state === "done" ? `${fmtBytes(j.size)} · finished in ${fmtDur(j.endAt - (j.xferStart || j.startAt))} · avg ${fmtSpeed(speedAvg(j))}` : `${fmtBytes(j.done)} of ${fmtBytes(j.size)}`;
+  const btns = [];
+  if (j.state === "running" || j.state === "queued") btns.push(`<button class="btn sm" data-jact="cancel">Cancel</button>`);
+  if ((j.state === "error" || j.state === "cancelled") && j.type === "upload") btns.push(`<button class="btn sm primary" data-jact="retry">Retry / resume</button>`);
+  btns.push(`<button class="btn sm" data-jact="toggle">${j.expanded ? "Hide details" : "Show details"}</button>`);
+  if (j.state !== "running" && j.state !== "queued") btns.push(`<button class="btn sm" data-jact="dismiss">Dismiss</button>`);
+  return `<div class="job ${j.state}" data-job="${j.id}"><div class="jtop"><span>${j.type === "upload" ? "⬆" : "⬇"}</span><span class="jname" title="${esc(j.name)}">${esc(j.name)}</span><span class="pill ${j.state}">${esc(j.state === "running" ? (j.type === "upload" ? "uploading" : "downloading") : j.state)}</span></div>
+<div class="bar"><i style="width:${pct.toFixed(2)}%"></i></div><div class="jsum">${esc(summary)}</div><div class="jphase">${esc(j.phase || "")}${j.error ? `<div style="color:var(--bad);margin-top:3px">${esc(j.error)}</div>` : ""}</div>
+<div class="jbtns">${btns.join("")}</div>${j.expanded ? jobDetails(j) : ""}</div>`;
+}
+function renderJobs() {
+  const box = $("xlist"), top = box.scrollTop;
+  box.innerHTML = S.jobs.slice().reverse().map(jobHTML).join("") || '<div class="empty">No transfers yet.</div>';
+  box.scrollTop = top;
+  const active = S.jobs.filter(j => j.state === "running" || j.state === "queued").length;
+  $("xtitle").textContent = active ? `Transfers · ${active} active` : "Transfers";
+  $("xBadge").textContent = active; $("xBadge").classList.toggle("hidden", !active);
+  if (!S.jobs.length) $("xfer").classList.add("hidden");
+}
+setInterval(() => { if (S.jobs.some(j => j.state === "running")) renderJobs(); }, 500);
+
+/* ---------------- dialogs ---------------- */
+function closeDialog() { $("modal").classList.remove("show"); $("modal").innerHTML = ""; if (S.previewURL) { URL.revokeObjectURL(S.previewURL); S.previewURL = ""; } }
+function dialog({ title, html, buttons = [], onOpen, wide }) {
+  const root = $("modal");
+  root.innerHTML = `<div class="dlg ${wide ? "wide" : ""}" role="dialog" aria-modal="true"><div class="dlgHead"><h2>${esc(title)}</h2><button class="x" data-x aria-label="Close">×</button></div><div class="dlgBody">${html}</div><div class="dlgFoot"></div></div>`;
+  const foot = root.querySelector(".dlgFoot");
+  for (const b of buttons) { const el = document.createElement("button"); el.className = "btn " + (b.cls || ""); el.textContent = b.label; el.addEventListener("click", () => b.cb(root.querySelector(".dlgBody"), el)); foot.appendChild(el); }
+  root.classList.add("show"); onOpen?.(root.querySelector(".dlgBody"));
+  return root;
+}
+$("modal").addEventListener("click", e => { if (e.target === $("modal") || e.target.closest("[data-x]")) closeDialog(); });
+addEventListener("keydown", e => { if (e.key === "Escape") closeDialog(); });
+function askText(title, label, value, ok) {
+  return new Promise(res => {
+    let settled = false; const fin = v => { if (!settled) { settled = true; closeDialog(); res(v); } };
+    dialog({ title, html: `<div class="field"><label>${esc(label)}</label><input type="text" id="askIn" maxlength="200" value="${esc(value || "")}"></div>`,
+      buttons: [{ label: "Cancel", cb: () => fin(null) }, { label: ok || "OK", cls: "primary", cb: b => fin(b.querySelector("#askIn").value.trim() || null) }],
+      onOpen: b => { const i = b.querySelector("#askIn"); i.focus(); i.select(); i.addEventListener("keydown", e => { if (e.key === "Enter") fin(i.value.trim() || null); }); } });
+    $("modal").addEventListener("click", function h(e) { if (e.target === $("modal") || e.target.closest("[data-x]")) { $("modal").removeEventListener("click", h); fin(null); } });
+  });
+}
+function askFolder(item) {
+  return new Promise(res => {
+    const banned = item.type === "folder" ? descendants(item.id) : new Set();
+    const folders = S.items.filter(i => i.type === "folder" && !banned.has(i.id));
+    const depth = f => folderPath(f.id).length - 1;
+    folders.sort((a, b) => folderPath(a.id).map(x => x.name).join("/").localeCompare(folderPath(b.id).map(x => x.name).join("/")));
+    const opts = [{ id: "root", name: "My files", d: 0 }, ...folders.map(f => ({ id: f.id, name: f.name, d: depth(f) + 1 }))];
+    let settled = false; const fin = v => { if (!settled) { settled = true; closeDialog(); res(v); } };
+    dialog({ title: `Move “${item.name}”`, html: `<div class="folderPick">${opts.map(o => `<label style="padding-left:${8 + o.d * 18}px"><input type="radio" name="dest" value="${esc(o.id)}" ${o.id === item.folder ? "checked" : ""}> ${o.id === "root" ? "🏠" : "📁"} ${esc(o.name)}</label>`).join("")}</div>`,
+      buttons: [{ label: "Cancel", cb: () => fin(null) }, { label: "Move here", cls: "primary", cb: b => fin(b.querySelector("input[name=dest]:checked")?.value || null) }] });
+    $("modal").addEventListener("click", function h(e) { if (e.target === $("modal") || e.target.closest("[data-x]")) { $("modal").removeEventListener("click", h); fin(null); } });
+  });
+}
+function showPreview(it, blob) {
+  const kind = previewKind(it); if (!kind || !blob) return;
+  const url = URL.createObjectURL(new Blob([blob], { type: it.mime })), body = kind === "video" ? `<video src="${url}" controls autoplay playsinline></video>` : kind === "audio" ? `<audio src="${url}" controls autoplay style="width:100%"></audio>` : kind === "image" ? `<img src="${url}" alt="">` : kind === "pdf" ? `<iframe src="${url}"></iframe>` : `<pre id="txtPrev">Loading…</pre>`;
+  dialog({ title: it.name, wide: true, html: `<div class="previewBox">${body}</div><p class="muted" style="margin:10px 0 0">Decrypted locally in your browser. Closing this window discards the decrypted copy.</p>`, buttons: [{ label: "Close", cb: closeDialog }],
+    onOpen: async b => { S.previewURL = url; if (kind === "text") { const t = await blob.slice(0, 1024 * 1024).text(); b.querySelector("#txtPrev").textContent = t + (blob.size > 1024 * 1024 ? "\n… (truncated)" : ""); } } });
+}
+
+/* ---------------- file actions ---------------- */
+async function guarded(label, fn) {
+  setStatus(label + "…", true);
+  try { await ensureRegistered(); await refreshWalletStats(); requireFunding(); await fn(); }
+  catch (e) { toast(e.message, "bad"); }
+  setStatus("", false); await refreshWalletStats(); render();
+}
+async function updateItem(it, mut, label) {
+  await guarded(label, async () => {
+    const meta = { ...it.meta }; mut(meta); meta.modified = new Date().toISOString();
+    const content = { kind: it.type === "file" ? "drive_file" : "drive_folder", v: 1, id: it.id, sealed: await sealJSON(meta, "meta:" + it.key) };
+    await updateRecord(it.key, content, ph => setStatus({ l2: "Writing update to Layer 2…", l1: "Anchoring on Layer 1…", receipt: "Waiting for validator receipts…" }[ph], true));
+    Object.assign(it, itemFrom(it.key, content.kind, meta, it.origHash, it.l2Height), { fresh: true });
+  });
+}
+async function newFolder() {
+  const name = await askText("New folder", "Folder name", "", "Create"); if (!name) return;
+  await guarded("Creating folder", async () => {
+    const id = randomID(), key = `drive:folder:${id}`, iso = new Date().toISOString(), meta = { v: 1, name, parent: S.folder, created: iso, modified: iso };
+    const content = { kind: "drive_folder", v: 1, id, sealed: await sealJSON(meta, "meta:" + key) };
+    const r = await createRecord(key, content, ACT.FOLDER, ph => setStatus({ l2: "Writing folder to Layer 2…", l1: "Anchoring on Layer 1…", receipt: "Waiting for validator receipts…" }[ph], true));
+    const it = itemFrom(key, "drive_folder", meta, r.l2Hash, r.l2.height); it.fresh = true; S.items.push(it);
+  });
+}
+async function deleteItem(it) {
+  if (it.type === "folder" && S.items.some(i => i.folder === it.id)) return toast("This folder is not empty. Move or delete its contents first.", "bad");
+  if (!confirm(`Delete “${it.name}”?\n\nIt disappears from your drive. The chain keeps an immutable history, but the contents stay encrypted and unreadable without your recovery words.`)) return;
+  await guarded("Deleting", async () => {
+    await removeRecord(it.key, it.origHash, ph => setStatus({ l2: "Deleting on Layer 2…", l1: "Anchoring on Layer 1…", receipt: "Waiting for validator receipts…" }[ph], true));
+    S.items = S.items.filter(i => i.key !== it.key); toast("Deleted", "ok");
+  });
+}
+async function downloadWithSizeCheck(it, preview) {
+  if (preview && it.size > 1024 ** 3 && !confirm(`Preview needs the whole ${fmtBytes(it.size)} file in memory. Continue?`)) return;
+  startDownload(it, preview);
+}
+$("rows").addEventListener("click", e => {
+  const btn = e.target.closest("[data-act]"), tr = e.target.closest("tr[data-key]"); if (!btn || !tr) return;
+  const it = S.items.find(i => i.key === tr.dataset.key); if (!it) return;
+  const act = btn.dataset.act;
+  if (act === "open") { if (it.type === "folder") { S.folder = it.id; $("searchBox").value = ""; S.query = ""; render(); } else if (previewKind(it)) downloadWithSizeCheck(it, true); else downloadWithSizeCheck(it, false); }
+  else if (act === "download") downloadWithSizeCheck(it, false);
+  else if (act === "preview") downloadWithSizeCheck(it, true);
+  else if (act === "rename") askText("Rename", "New name", it.name, "Rename").then(n => { if (n && n !== it.name) updateItem(it, m => { m.name = n; }, "Renaming"); });
+  else if (act === "move") askFolder(it).then(d => { if (d && d !== it.folder) updateItem(it, m => { if (it.type === "folder") m.parent = d; else m.folder = d; }, "Moving"); });
+  else if (act === "delete") deleteItem(it);
+});
+$("crumbs").addEventListener("click", e => { const a = e.target.closest("[data-folder]"); if (a) { S.folder = a.dataset.folder; render(); } });
+document.querySelector("table.files thead").addEventListener("click", e => { const th = e.target.closest("[data-sort]"); if (!th) return; const k = th.dataset.sort; S.sort = { k, d: S.sort.k === k ? -S.sort.d : 1 }; render(); });
+$("searchBox").addEventListener("input", e => { S.query = e.target.value; render(); });
+$("uploadBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", e => { enqueueUploads([...e.target.files], S.folder); e.target.value = ""; });
+$("folderBtn").addEventListener("click", newFolder);
+$("refreshBtn").addEventListener("click", () => refreshFiles());
+$("navFiles").addEventListener("click", () => { S.folder = "root"; S.query = ""; $("searchBox").value = ""; render(); window.scrollTo(0, 0); });
+$("navXfer").addEventListener("click", () => { showXfer(true); $("xfer").classList.remove("min"); });
+$("navAcct").addEventListener("click", openAccount); $("acctBtn").addEventListener("click", openAccount);
+$("xhead").addEventListener("click", e => { if (e.target.closest("#xclear")) return; $("xfer").classList.toggle("min"); $("xcaret").textContent = $("xfer").classList.contains("min") ? "▴" : "▾"; });
+$("xclear").addEventListener("click", () => { S.jobs = S.jobs.filter(j => j.state === "running" || j.state === "queued"); renderJobs(); });
+$("xlist").addEventListener("click", e => {
+  const b = e.target.closest("[data-jact]"), card = e.target.closest("[data-job]"); if (!b || !card) return;
+  const j = S.jobs.find(x => x.id === Number(card.dataset.job)); if (!j) return;
+  const a = b.dataset.jact;
+  if (a === "cancel") { j.cancelled = true; if (j.state === "queued") { j.state = "cancelled"; j.phase = "Cancelled"; } }
+  else if (a === "retry") retryJob(j);
+  else if (a === "toggle") j.expanded = !j.expanded;
+  else if (a === "dismiss") S.jobs = S.jobs.filter(x => x !== j);
+  renderJobs();
+});
+/* drag and drop */
+const drop = $("drop"); let dragDepth = 0;
+for (const t of ["dragenter", "dragover"]) addEventListener(t, e => { if (!S.wallet || !e.dataTransfer?.types?.includes("Files")) return; e.preventDefault(); if (t === "dragenter") dragDepth++; drop.classList.add("over"); });
+addEventListener("dragleave", () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) drop.classList.remove("over"); });
+addEventListener("drop", e => {
+  if (!S.wallet || !e.dataTransfer?.types?.includes("Files")) return; e.preventDefault(); dragDepth = 0; drop.classList.remove("over");
+  const files = []; let skipped = 0;
+  for (const it of e.dataTransfer.items || []) { if (it.kind !== "file") continue; const en = it.webkitGetAsEntry?.(); if (en && en.isDirectory) { skipped++; continue; } const f = it.getAsFile(); if (f) files.push(f); }
+  if (skipped) toast("Folders cannot be dropped yet. Drop the files inside instead.", "bad");
+  enqueueUploads(files, S.folder);
+});
+addEventListener("beforeunload", e => { if (S.jobs.some(j => j.state === "running")) { e.preventDefault(); e.returnValue = ""; } });
+
+/* ---------------- account ---------------- */
+function openAccount() {
+  if (!S.wallet) return;
+  const hasVault = !!localStorage.getItem(LS_VAULT);
+  dialog({ title: "Account & storage", wide: true, html: `
+<div class="kvl"><span>Wallet address</span><b class="mono">${esc(S.wallet.address)}</b>
+<span>Layer 1 spendable</span><b id="acL1">${esc(formatAtomic(S.l1Bal))}</b>
+<span>Layer 2 storage balance</span><b id="acL2">${esc(formatAtomic(S.l2Bal))}</b>
+<span>Network</span><b>${esc(S.l1.chainID)} + ${esc(S.l2.chainID)} (protocol v${protocolVersion(S.l2)})</b></div>
+<h3>Add storage</h3>
+<p class="muted" style="margin:0 0 8px">Uploads are paid from your Layer 2 storage balance. Move ${esc(chainDenom())} from Layer 1 into it here.</p>
+<div class="row"><input type="text" id="fundAmt" value="10" style="max-width:160px" inputmode="decimal"><button class="btn primary" id="fundBtn">Add storage</button></div>
+<div id="fundMsg" class="note hidden"></div>
+<h3>Upload speed settings</h3>
+<div class="row"><label>Chunk size <select id="setChunk" style="width:auto"><option value="96">96 KB</option><option value="192">192 KB (recommended)</option><option value="384">384 KB</option><option value="1024">1024 KB</option></select></label>
+<label>Parallel commits <select id="setWin" style="width:auto"><option value="1">1 (safest)</option><option value="2">2</option><option value="4">4</option><option value="8">8 (experimental)</option></select></label></div>
+<p class="muted" style="margin:6px 0 0;font-size:12px">Larger chunks and parallel commits upload big videos faster if your validator accepts them. If it does not, chainDrive steps back automatically. Applies to new uploads.</p>
+<h3>Recovery words</h3>
+<div class="row"><button class="btn" id="revealSeed">Show my recovery words</button></div><div id="seedOut" class="note warn hidden mono"></div>
+<h3>This device</h3>
+<p class="muted" style="margin:0 0 8px">${hasVault ? "Your drive is saved on this device, protected by your password." : "Nothing is saved on this device. You will need your recovery words next time."}</p>
+${hasVault ? '<button class="btn sm danger" id="forgetDev">Remove from this device</button>' : ""}
+<div class="note" style="margin-top:16px"><b>What is private:</b> file contents, names, sizes, types and folders are encrypted with a key derived from your recovery words. The chain itself is public, so anyone can see that your wallet stores encrypted blocks and roughly how many. Without your words they cannot read anything.</div>`,
+    buttons: [{ label: "Lock drive", cls: "danger", cb: signOut }, { label: "Close", cls: "primary", cb: closeDialog }],
+    onOpen: b => {
+      b.querySelector("#setChunk").value = String(S.settings.chunkKB); b.querySelector("#setWin").value = String(S.settings.window);
+      const save = () => { S.settings = { chunkKB: Number(b.querySelector("#setChunk").value), window: Number(b.querySelector("#setWin").value) }; localStorage.setItem(LS_SET, JSON.stringify(S.settings)); };
+      b.querySelector("#setChunk").addEventListener("change", save); b.querySelector("#setWin").addEventListener("change", save);
+      b.querySelector("#revealSeed").addEventListener("click", () => { const o = b.querySelector("#seedOut"); const show = o.classList.contains("hidden"); o.textContent = show ? S.wallet.seedPhrase : ""; o.classList.toggle("hidden", !show); b.querySelector("#revealSeed").textContent = show ? "Hide recovery words" : "Show my recovery words"; });
+      b.querySelector("#forgetDev")?.addEventListener("click", () => { if (confirm("Remove the saved drive from this device? You will need your recovery words to open it again.")) { localStorage.removeItem(LS_VAULT); closeDialog(); toast("Removed from this device", "ok"); } });
+      b.querySelector("#fundBtn").addEventListener("click", () => fundStorage(b));
+      refreshWalletStats().then(() => { const a = b.querySelector("#acL1"), c = b.querySelector("#acL2"); if (a) a.textContent = formatAtomic(S.l1Bal); if (c) c.textContent = formatAtomic(S.l2Bal); });
+    } });
+}
+async function fundStorage(b) {
+  const btn = b.querySelector("#fundBtn"), msg = b.querySelector("#fundMsg"), say = (t, k = "") => { msg.className = "note " + k; msg.textContent = t; };
+  btn.disabled = true; say("Moving funds from Layer 1…");
+  try {
+    await ensureRegistered(); const amount = parseHumanAmount(b.querySelector("#fundAmt").value), before = (await l2Balance());
+    const r = await broadcast(S.l1, protocolVersion(S.l2) >= 7 ? "L2_FUND" : "STORAGE_FUND", { l2_chain_id: S.l2.chainID, amount }, null);
+    say(`Layer 1 committed at block ${r.height}. Waiting for the Layer 2 credit…`);
+    const t0 = Date.now(); for (;;) { if ((await l2Balance()) >= before + BigInt(amount)) break; if (Date.now() - t0 > 120000) throw Error("The L2 credit did not arrive within 120 seconds."); await sleep(900); }
+    await refreshWalletStats(); b.querySelector("#acL1").textContent = formatAtomic(S.l1Bal); b.querySelector("#acL2").textContent = formatAtomic(S.l2Bal);
+    say(`${formatAtomic(amount)} added to your storage balance.`, "ok");
+  } catch (e) { say(e.message, "bad"); } finally { btn.disabled = false; }
+}
+
+/* ---------------- sign in / vault ---------------- */
+function rememberBlock(p) { return `<label class="check"><input type="checkbox" id="${p}Rem"><span>Keep this drive on this device, protected by a password, so I can unlock it without typing the words.</span></label><div class="field hidden" id="${p}PwBox"><label>Choose a password</label><input type="password" id="${p}Pw" autocomplete="new-password"></div>`; }
+for (const [p, id] of [["rn", "remNewBox"], ["ri", "remImpBox"]]) { $(id).innerHTML = rememberBlock(p); $(p + "Rem").addEventListener("change", e => $(p + "PwBox").classList.toggle("hidden", !e.target.checked)); }
+function authMsg(t, kind = "bad") { const m = $("authMsg"); m.className = "note " + kind; m.textContent = t; if (!t) m.classList.add("hidden"); }
+function authTab(tab) { for (const b of $("authTabs").children) b.classList.toggle("on", b.dataset.tab === tab); for (const s of document.querySelectorAll("[data-pane]")) s.classList.toggle("hidden", s.dataset.pane !== tab); authMsg(""); }
+$("authTabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) authTab(b.dataset.tab); });
+async function vaultKey(pw, salt) { const m = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveKey"]); return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 250000 }, m, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]); }
+async function saveVault(seed, address, pw) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await vaultKey(pw, salt), enc.encode(seed)));
+  localStorage.setItem(LS_VAULT, JSON.stringify({ v: 1, address, salt: b64(salt), iv: b64(iv), ct: b64(ct) }));
+}
+async function signIn(seed, remember) {
+  authMsg("Opening your drive…", "");
+  let wallet; try { wallet = await walletFromSeed(seed); } catch (e) { authMsg(/Ed25519|algorithm/i.test(e.message) ? "This browser cannot do Ed25519 signing. Use a current Chrome, Edge, Firefox or Safari." : e.message); return; }
+  if (remember) { if ((remember.pw || "").length < 6) { authMsg("Choose a password with at least 6 characters, or untick “keep this drive on this device”."); return; } await saveVault(wallet.seedPhrase, wallet.address, remember.pw); }
+  S.wallet = wallet; S.master = await deriveDriveKey(wallet.seedPhrase);
+  if (!S.l1 || !S.l2) { if (!(await connect())) { authMsg("Could not reach chainWare. Check your connection and try again."); S.wallet = S.master = null; return; } }
+  $("auth").classList.add("hidden"); $("app").classList.remove("hidden"); authMsg("");
+  S.items = []; S.folder = "root"; S.query = ""; $("searchBox").value = ""; render(); setStatus("Registering wallet and reading your drive…", true);
+  try { await ensureRegistered(); } catch (e) { toast("Wallet registration: " + e.message, "bad"); }
+  await refreshWalletStats(); await refreshFiles();
+  if (S.l2Bal <= 0n) toast(`Your storage balance is empty. Open Account to move some ${chainDenom()} into storage before uploading.`);
+}
+function signOut() {
+  if (S.jobs.some(j => j.state === "running") && !confirm("Uploads are still running. Lock the drive anyway? They stop, and can be resumed later.")) return;
+  for (const j of S.jobs) if (j.state === "running" || j.state === "queued") j.cancelled = true;
+  closeDialog(); S.wallet = S.master = null; S.items = []; S.jobs = []; S.resolved.clear(); renderJobs();
+  $("app").classList.add("hidden"); $("auth").classList.remove("hidden"); initAuth();
+}
+function newSeedUI() { $("newSeed").value = makeSeed(24); $("seedSaved").checked = false; $("createBtn").disabled = true; }
+$("regenSeed").addEventListener("click", newSeedUI);
+$("seedSaved").addEventListener("change", e => { $("createBtn").disabled = !e.target.checked; });
+$("copySeed").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("newSeed").value); authMsg("Recovery words copied. Store them somewhere safe, then clear your clipboard.", "ok"); } catch { authMsg("Copy failed. Select the words and copy them by hand."); } });
+$("createBtn").addEventListener("click", async () => { const b = $("createBtn"); b.disabled = true; await signIn($("newSeed").value, $("rnRem").checked ? { pw: $("rnPw").value } : null); b.disabled = !$("seedSaved").checked; });
+$("importBtn").addEventListener("click", async () => { const b = $("importBtn"); b.disabled = true; await signIn($("importSeed").value, $("riRem").checked ? { pw: $("riPw").value } : null); b.disabled = false; });
+async function unlock() {
+  const b = $("unlockBtn"); b.disabled = true;
+  try {
+    const v = JSON.parse(localStorage.getItem(LS_VAULT) || "null"); if (!v) throw Error("No saved drive on this device.");
+    let seed; try { seed = dec.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(v.iv) }, await vaultKey($("unlockPw").value, unb64(v.salt)), unb64(v.ct))); } catch { throw Error("Wrong password."); }
+    await signIn(seed, null); $("unlockPw").value = "";
+  } catch (e) { authMsg(e.message); } finally { b.disabled = false; }
+}
+$("unlockBtn").addEventListener("click", unlock); $("unlockPw").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
+$("forgetVault").addEventListener("click", () => { if (confirm("Forget the drive saved on this device? You will need your recovery words to open it again.")) { localStorage.removeItem(LS_VAULT); initAuth(); } });
+function initAuth() {
+  const has = !!localStorage.getItem(LS_VAULT);
+  document.querySelector('[data-tab="unlock"]').classList.toggle("hidden", !has);
+  newSeedUI(); authTab(has ? "unlock" : "new");
+}
+initAuth();
+connect();
+})();
+</script>
+</body>
+</html>

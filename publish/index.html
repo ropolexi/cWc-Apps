@@ -179,7 +179,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 function log(msg, cls=""){const l=$("log");l.classList.remove("muted");const d=document.createElement("div");if(cls)d.className=cls;d.textContent=`${new Date().toLocaleTimeString()}  ${msg}`;l.appendChild(d);l.scrollTop=l.scrollHeight}
 
 /* ---------- cWc Identity ---------- */
-const IDENTITY_URL = "";
+const IDENTITY_URL = "https://ropolexi.github.io/cWc-Apps/identity";
 const idOrigin = (() => { try { return new URL(IDENTITY_URL).origin; } catch { return ""; } })();
 let idWin = null, idSeq = 0;
 const idPending = new Map();

@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cWc Paid Posts</title>
+<style>
+  :root{--bg:#f6f4ef;--card:#fff;--ink:#1f1d1a;--muted:#78736b;--line:#e3ded4;--accent:#8a5a2b;--ok:#2e7d32;--bad:#b3261e;--warn:#9a6700;--soft:#faf7f0}
+  @media (prefers-color-scheme:dark){:root{--bg:#161412;--card:#201d1a;--ink:#ece7df;--muted:#9a948a;--line:#34302b;--accent:#d3a066;--ok:#7bc67e;--bad:#ff8a80;--warn:#e0b252;--soft:#1b1917}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 16px 72px}
+  header{border-bottom:1px solid var(--line);background:var(--card)}
+  a{color:inherit}
+ .hd{max-width:820px;margin:0 auto;padding:18px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .brand{font-size:1.4rem;font-weight:700;text-decoration:none}
+  .menu{display:flex;gap:18px;font:.92rem system-ui,sans-serif}
+  .menu a{text-decoration:none;color:var(--muted)} .menu a:hover,.menu a.on{color:var(--accent)}
+  main{max-width:820px;margin:0 auto;padding:24px 16px 64px}
+  h1{margin:0 0 4px;font-size:1.5rem} h2{font-size:1.05rem;margin:0 0 10px} h3{font-size:.95rem;margin:18px 0 6px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:.92rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  label{display:block;font-size:.85rem;color:var(--muted);margin:12px 0 4px}
+  input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+  textarea{min-height:140px;resize:vertical}
+  button{font:inherit;padding:8px 16px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .08s ease,filter .08s ease}
+  button:hover:not(:disabled){filter:brightness(1.08)} button:active:not(:disabled){transform:scale(.98)}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  button.good{background:var(--ok);border-color:var(--ok)} button.danger{background:var(--bad);border-color:var(--bad)}
+  button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px} @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .mono{font:.8rem ui-monospace,Consolas,monospace;word-break:break-all}
+  .muted{color:var(--muted);font-size:.85rem} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  .tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+  .tabs button{background:transparent;color:var(--ink);border-color:var(--line)}
+  .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:500;font-size:.8rem}
+  tr.click{cursor:pointer} tr.click:hover{background:var(--soft)}
+  .pill{display:inline-block;padding:0 8px;border-radius:99px;font-size:.74rem;border:1px solid var(--line);color:var(--muted);margin-left:4px;white-space:nowrap}
+  .pill.me{border-color:var(--accent);color:var(--accent)} .pill.ok{border-color:var(--ok);color:var(--ok)} .pill.bad{border-color:var(--bad);color:var(--bad)} .pill.warn{border-color:var(--warn);color:var(--warn)}
+  .steps{list-style:none;margin:0;padding:0}
+  .steps li{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .steps li:last-child{border-bottom:0}
+  .dot{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);text-align:center;font-size:.8rem;line-height:18px;color:var(--muted)}
+  .steps li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+  .steps li.now .dot{border-color:var(--accent);color:var(--accent)}
+  .note{padding:10px 12px;border-radius:8px;background:var(--soft);border:1px solid var(--line);font-size:.9rem;margin:10px 0}
+  .note.warn{border-color:var(--warn)} .note.good{border-color:var(--ok)}
+  pre.brief{white-space:pre-wrap;word-break:break-word;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:.9rem/1.5 system-ui,sans-serif;margin:0;max-height:300px;overflow:auto}
+  iframe#pv{width:100%;height:420px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:8px}
+  #log{font:.82rem/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;max-height:220px;overflow:auto}
+  details>summary{cursor:pointer;font-weight:600}
+  details.card ol,details.card ul{margin:10px 0 0;padding-left:20px} details.card li{margin:4px 0}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:.92rem} @media(max-width:560px){.kv{grid-template-columns:1fr}}
+  .kv>div:nth-child(odd){color:var(--muted)}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+   <header><div class="hd"><a class="brand" id="brand" href="#/">cWc Paid Posts</a>
+  <nav class="menu"><a href="./../user-blog" id="mHome">Blog</a><a href="./../cwc-paid-posts" id="getpaid">Get Paid</a><a href="./../publish" id="publish">Publish</a></nav></div></header>
+
+<div class="wrap">  
+  <p class="sub">Commission a guest post and pay for it safely. The payment is locked on the chain and moves only when the reviewers you name approve the delivered article. If they do not approve, the money returns to you.</p>
+
+  <details class="card">
+    <summary>How it works (read once)</summary>
+    <ol>
+      <li><b>Publisher</b> (you, the blog owner) describes the post, names the <b>writer</b> and the <b>reviewers</b>, and locks the payment. Nobody, including you, can take it back while the vote is running.</li>
+      <li>The <b>writer</b> opens the commission link, checks the locked payment and the rules, then writes the article (publish it on your blog as usual) and submits it as a <b>delivery</b>.</li>
+      <li>The <b>reviewers</b> (you plus anyone you add) read the delivery and vote YES, NO or ABSTAIN before the deadline.</li>
+      <li>When the deadline passes: if more than two thirds of the reviewers voted YES, the payment goes to the writer. In every other case, including when nobody votes, it goes back to the publisher.</li>
+      <li>The publisher or the writer then presses <b>Settle</b> to move the money. The result is fixed by the votes; the person who presses the button cannot change it.</li>
+    </ol>
+    <p class="muted" style="margin:10px 0 0">Every action costs a small network fee (0.0004), so each person needs a little balance. Each signature is approved in your cWc Identity window.</p>
+  </details>
+
+  <div class="card" id="connCard">
+    <h2>1 · Connect</h2>
+    <div class="grid2">
+      <div>
+        <label>L1 host</label><input id="l1host" value="l1-13-2.diamondthumb.com">
+        <label>L2 host <span class="muted">(only used to preview delivered posts; blank = same host with l1 → l2)</span></label><input id="l2host" placeholder="auto">
+      </div>
+      <div>
+        <label>Your keys stay in the separate cWc Identity window.</label>
+        <div class="row" style="margin-top:0"><button id="connectId">Sign in with cWc Identity</button></div>
+        <details style="margin-top:12px"><summary class="muted">Advanced</summary>
+          <label>Identity window address</label><input id="idUrl" placeholder="https://…">
+        </details>
+      </div>
+    </div>
+    <p class="muted" id="conn" style="margin:12px 0 0">Not connected.</p>
+    <div class="row hide" id="regRow" style="margin-top:8px"><button class="ghost" id="btnRegister">Register this wallet</button><span class="muted">New wallets must register once. Registration may pay a small starter balance.</span></div>
+  </div>
+
+  <div id="main" class="hide">
+    <div class="tabs">
+      <button id="tabList" class="on">My commissions</button>
+      <button id="tabNew">New commission</button>
+    </div>
+
+    <!-- LIST -->
+    <div id="viewList" class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">2 · Commissions you are part of</h2><button class="ghost" id="reload">Reload</button></div>
+      <p class="muted" id="listNote" style="margin:0 0 8px">Loading…</p>
+      <table id="listTable" class="hide"><thead><tr><th>Title</th><th>You are</th><th>Amount</th><th>Status</th></tr></thead><tbody id="listBody"></tbody></table>
+      <div class="row" style="margin-top:14px"><input id="openId" class="mono" placeholder="Paste a commission ID" style="flex:1;min-width:240px"><button class="ghost" id="btnOpen">Open</button></div>
+    </div>
+
+    <!-- NEW -->
+    <div id="viewNew" class="card hide">
+      <h2>New commission (you are the publisher)</h2>
+      <label>Title</label><input id="cTitle" maxlength="120" placeholder="Guest post: Getting started with cWc">
+      <label>What you want <span class="muted">(topic, length, deadline, rules; the writer and reviewers read this)</span></label>
+      <textarea id="cBrief" maxlength="8000" placeholder="Write about…&#10;Length: about 800 words&#10;Must include: …"></textarea>
+      <div class="grid2">
+        <div><label>Writer's wallet address</label><input id="cWriter" class="mono" placeholder="cw…" autocomplete="off"></div>
+        <div><label>Payment <span class="muted" id="cUnit"></span></label><input id="cAmount" inputmode="decimal" placeholder="10"></div>
+      </div>
+      <label>Other reviewers <span class="muted">(wallet addresses, one per line; you always vote too; do not add the writer)</span></label>
+      <textarea id="cReviewers" style="min-height:70px" class="mono" placeholder="cw…"></textarea>
+      <div class="grid2">
+        <div><label>Voting stays open for</label>
+          <div class="row" style="flex-wrap:nowrap"><input id="cDur" inputmode="decimal" value="3" style="width:90px"><select id="cUnitSel" style="width:auto"><option value="3600">hours</option><option value="86400" selected>days</option></select></div></div>
+        <div><label>Seconds per block <span class="muted">(measured from the chain; you may correct it)</span></label><input id="cSpb" inputmode="decimal"></div>
+      </div>
+      <div class="note" id="plan">Fill in the form to see the rules that will be locked on-chain.</div>
+      <div class="row"><button id="btnCreate">Lock payment and open commission</button><span class="muted">3 signatures will be requested in your identity window.</span></div>
+    </div>
+
+    <!-- DETAIL -->
+    <div id="viewDetail" class="hide"></div>
+  </div>
+
+  <div class="card"><h2>Activity</h2><div id="log" class="muted">Waiting.</div></div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const RPC_PATH = "/chainware-rpc", FEE = "400000000";
+const PROPOSAL_SCHEMA = "chainware:proposals:v11:r1";
+const DELIVERY_SCHEMA = "cwc:paid-post:v1";
+const APP_TAG = "cwc-paid-posts";
+const SETTLED = new Set(["RELEASED_TO_APPROVED_RECIPIENT", "REFUNDED_TO_PAYOR", "REFUNDED_TIMEOUT_TO_PAYOR"]);
+const app = { wallet: null, l1: null, l2: null, reqId: 1 };
+const view = { id: null, model: null };
+
+/* ---------- helpers ---------- */
+function b64(bytes){let s="";const a=new Uint8Array(bytes);for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode(...a.subarray(i,Math.min(i+0x8000,a.length)));return btoa(s)}
+function unb64(v){const s=atob(String(v||"")),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+function hex(bytes){return Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,"0")).join("")}
+function fromHex(v){const s=String(v).replace(/^0x/i,"");const a=new Uint8Array(s.length/2);for(let i=0;i<a.length;i++)a[i]=parseInt(s.slice(i*2,i*2+2),16);return a}
+const field=(o,...n)=>{for(const k of n)if(o&&o[k]!==undefined&&o[k]!==null)return o[k]};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function sha256HexBytes(bytes){return hex(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)))}
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const short = a => a && a.length > 16 ? a.slice(0, 8) + "…" + a.slice(-6) : (a || "");
+const isAddr = a => /^cw[0-9a-f]{40}$/.test(String(a || ""));
+const eqi = (a, b) => String(a || "").toLowerCase() === String(b || "").toLowerCase();
+const me = () => app.wallet ? app.wallet.address : "";
+
+function goJSONEscapeText(t){return String(t).replace(/[<>&\u2028\u2029]/g,c=>({"<":"\\u003c",">":"\\u003e","&":"\\u0026","\u2028":"\\u2028","\u2029":"\\u2029"})[c])}
+function goJSONStringify(v){const e=JSON.stringify(v);return goJSONEscapeText(e===undefined?"null":e)}
+function canon(v){
+  if(v===undefined)return "null";
+  if(v===null||typeof v!=="object")return goJSONStringify(v);
+  if(Array.isArray(v))return `[${v.map(x=>x===undefined?"null":canon(x)).join(",")}]`;
+  const keys=Object.keys(v).filter(k=>v[k]!==undefined).sort();
+  return `{${keys.map(k=>`${goJSONStringify(k)}:${canon(v[k])}`).join(",")}}`;
+}
+function log(msg, cls=""){const l=$("log");l.classList.remove("muted");const d=document.createElement("div");if(cls)d.className=cls;d.textContent=`${new Date().toLocaleTimeString()}  ${msg}`;l.appendChild(d);l.scrollTop=l.scrollHeight}
+
+const decimals = () => (app.l1 && app.l1.decimals) || 12;
+function toBase(text){
+  const [w,f=""]=String(text).trim().replace(",",".").split(".");
+  if(!/^\d+$/.test(w||"0")||!/^\d*$/.test(f))throw Error("Invalid amount");
+  if(f.length>decimals())throw Error("Too many decimals (max "+decimals()+")");
+  return (BigInt(w||"0")*10n**BigInt(decimals())+BigInt(f.padEnd(decimals(),"0")||"0")).toString();
+}
+function fmt(v){
+  try{const d=decimals(),n=BigInt(v),base=10n**BigInt(d);const f=(n%base).toString().padStart(d,"0").replace(/0+$/,"");return (n/base)+(f?"."+f:"")}
+  catch{return String(v??"?")}
+}
+function fmtDur(sec){
+  if(!isFinite(sec)||sec<0)return "?";
+  if(sec<90)return Math.round(sec)+" s";
+  if(sec<5400)return Math.round(sec/60)+" min";
+  if(sec<172800)return (sec/3600).toFixed(1).replace(/\.0$/,"")+" h";
+  return (sec/86400).toFixed(1).replace(/\.0$/,"")+" days";
+}
+
+/* ---------- cWc Identity (keys stay in the identity window) ---------- */
+const DEFAULT_IDENTITY_URL = "";
+let identityUrl = DEFAULT_IDENTITY_URL;
+try{
+  identityUrl = new URLSearchParams(location.search).get("identity") || localStorage.getItem("cwc-paid-identity") || DEFAULT_IDENTITY_URL;
+}catch{}
+const idOriginOf = u => { try { return new URL(u).origin; } catch { return ""; } };
+let idWin = null, idSeq = 0;
+const idPending = new Map();
+function idOpen(){
+  const url = $("idUrl").value.trim() || identityUrl;
+  if(!idOriginOf(url)) throw Error("The identity window address is not a valid web address.");
+  identityUrl = url;
+  try{ localStorage.setItem("cwc-paid-identity", url); }catch{}
+  if(!idWin || idWin.closed){
+    idWin = window.open(url, "cwcIdentity", "width=480,height=700");
+    if(!idWin) throw Error("The identity window was blocked. Allow pop-ups for this page and try again.");
+  }else{ try{ idWin.focus(); }catch{} }
+}
+addEventListener("message", e => {
+  if(!idWin || e.source !== idWin || e.origin !== idOriginOf(identityUrl)) return;
+  const d = e.data; if(!d || d.cwcIdentity !== 1 || d.id == null) return;
+  const p = idPending.get(d.id); if(!p) return;
+  idPending.delete(d.id); d.ok ? p.res(d.result) : p.rej(Error(d.error || "Identity error"));
+});
+setInterval(()=>{ if(idWin && idWin.closed && idPending.size){ for(const [,p] of idPending) p.rej(Error("The identity window was closed. Sign in again.")); idPending.clear(); } }, 600);
+function idSend(method, params, timeoutMs){
+  return new Promise((res, rej) => {
+    const id = ++idSeq; let tm = null;
+    idPending.set(id, { res: v => { clearTimeout(tm); res(v); }, rej: e => { clearTimeout(tm); rej(e); } });
+    if(timeoutMs) tm = setTimeout(()=>{ idPending.delete(id); const e = Error("timeout"); e.timeout = true; rej(e); }, timeoutMs);
+    try{ idWin.postMessage({ cwcIdentity: 1, id, method, params }, idOriginOf(identityUrl)); }catch(e){ idPending.delete(id); rej(e); }
+  });
+}
+async function idHandshake(){
+  const t0 = Date.now();
+  while(Date.now() - t0 < 25000){
+    if(!idWin || idWin.closed) throw Error("The identity window was closed.");
+    try{ await idSend("hello", {}, 700); return; }
+    catch(e){ if(!e.timeout) throw e; }
+  }
+  throw Error("The identity window did not answer. Check the identity window address under Advanced.");
+}
+async function idCall(method, params){
+  if(!idWin || idWin.closed) throw Error("The identity window is closed. Click 'Sign in with cWc Identity' again.");
+  try{ idWin.focus(); }catch{}
+  return idSend(method, params);
+}
+
+/* ---------- RPC ---------- */
+async function rpc(base, method, params={}){
+  const r = await fetch(base.replace(/\/+$/,"")+"/", { method:"POST", headers:{"Content-Type":"text/plain;charset=UTF-8"}, body:JSON.stringify({jsonrpc:"2.0",id:app.reqId++,method,params}), cache:"no-store" });
+  const t = await r.text();
+  if(!r.ok){ const err = Error(r.status===413?"RPC request exceeded the web proxy body limit (HTTP 413).":`RPC HTTP ${r.status}: ${t.slice(0,180)}`); err.httpStatus = r.status; throw err; }
+  const o = JSON.parse(t); if(o.error) throw Error(o.error.data || o.error.message || "RPC error"); return o.result;
+}
+async function query(base, path){
+  const r = await rpc(base, "abci_query", {path, data:"", prove:false}), x = r?.response || {};
+  if(Number(x.code||0)!==0) throw Error(x.log || `Query failed: ${path}`);
+  return x.value ? JSON.parse(dec.decode(unb64(x.value))) : null;
+}
+async function connectLayer(base, expected){
+  const [status, cap, state] = await Promise.all([rpc(base,"status"), query(base,"/capabilities"), query(base,"/state")]);
+  const layer = String(cap?.Layer || state?.Layer || "");
+  if(layer !== expected) throw Error(`${base} reports ${layer||"unknown layer"}, expected ${expected}.`);
+  return { base, cap, state, chainID:String(cap?.ChainID || state?.ChainID || status?.node_info?.network || ""), decimals:Number(state?.Decimals || 12) };
+}
+const readAccount = async (layer, address) => await query(layer.base, `/account/${address}`) || {balance:"0", nonce:0};
+async function latestHeight(){ const st = await rpc(app.l1.base, "status", {}); return Number(st?.sync_info?.latest_block_height || 0); }
+
+/* ---------- signing and broadcasting ---------- */
+async function signTx(layer, type, payload, gas){
+  const acct = await readAccount(layer, app.wallet.address);
+  const nonce = Number(acct?.nonce ?? acct?.Nonce ?? 0) + 1;
+  const doc = { version:1, chain_id:layer.chainID, type, gas, signer:app.wallet.address, nonce, payload:JSON.parse(canon(payload)), public_key:app.wallet.publicKey };
+  const r = await idCall("sign", { doc });
+  return { ...doc, signature: r.signature };
+}
+async function broadcast(layer, type, payload, gas=FEE){
+  const tx = await signTx(layer, type, payload, gas);
+  const raw = enc.encode(JSON.stringify(tx)), encoded = b64(raw);
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", raw));
+  const localHash = hex(digest).toUpperCase(), hashB64 = b64(digest);
+  const isDup = v => /already exists|already in cache|duplicate|tx already exists|already registered/i.test(String(v?.message||v||""));
+  const isTimeout = v => /timed out|timeout|wait.*block|deadline|aborted|connection|network/i.test(String(v?.message||v||""));
+  async function findCommitted(){
+    for(const hash of [hashB64, "0x"+localHash, localHash]){
+      try{
+        const c = await rpc(layer.base, "tx", {hash, prove:false});
+        const res = c?.tx_result || c?.deliver_tx || {};
+        if(Number(res.code||0)!==0){ const e = Error(res.log || "Committed transaction failed"); e.committedFailure = true; throw e; }
+        const h = Number(c?.height||0); if(h>0) return { hash:localHash, height:h };
+      }catch(e){ if(e?.committedFailure) throw e; if(/not found/i.test(String(e?.message||e))) continue; }
+    }
+    return null;
+  }
+  try{
+    const res = await rpc(layer.base, "broadcast_tx_commit", { tx: encoded });
+    const checkCode = Number(res?.check_tx?.code || 0);
+    if(checkCode !== 0){
+      const m = res?.check_tx?.log || res?.check_tx?.info || `${type} failed CheckTx (code ${checkCode})`;
+      if(!isDup(m)){ const e = Error(m); e.checkTx = true; throw e; }
+    }
+    const dr = res?.deliver_tx || res?.tx_result || {};
+    if(Number(dr.code||0) !== 0){ const e = Error(dr.log || dr.info || `${type} failed (code ${dr.code})`); e.committedFailure = true; throw e; }
+    const height = Number(res?.height || 0);
+    if(height > 0) return { hash:localHash, height };
+  }catch(err){
+    if(err.checkTx || err.committedFailure) throw err;
+    if(!isDup(err) && !isTimeout(err)){ if(err.message && !/not found/i.test(err.message)) throw err; }
+  }
+  const immediate = await findCommitted(); if(immediate) return immediate;
+  const t0 = Date.now();
+  while(Date.now() - t0 < 35000){ const hit = await findCommitted(); if(hit) return hit; await sleep(800); }
+  try{ const st = await rpc(layer.base, "status", {}); const curH = Number(st?.sync_info?.latest_block_height || 0); if(curH>0) return { hash:localHash, height:curH }; }catch{}
+  return { hash:localHash, height:0, pending:true };
+}
+async function waitFor(fn, ms=40000, step=1000){
+  const t0 = Date.now();
+  while(Date.now() - t0 < ms){ try{ const v = await fn(); if(v) return v; }catch{} await sleep(step); }
+  return null;
+}
+
+/* ---------- Layer-2 reading (used to preview delivered posts) ---------- */
+async function loadL2Raw(layer, p){
+  const hash = String(field(p,"l2_tx_hash","L2TxHash")||"").replace(/^0x/i,"").toUpperCase();
+  if(!hash) throw Error("pointer without L2 hash");
+  for(const h of [b64(fromHex(hash)), "0x"+hash]){
+    try{ const r = await rpc(layer.base, "tx", {hash:h, prove:false}); if(r?.tx) return unb64(r.tx); }catch{}
+  }
+  const height = Number(field(p,"l2_height","L2Height")||0);
+  if(height<1) throw Error("L2 transaction not found");
+  const blk = await rpc(layer.base, "block", {height:String(height)});
+  for(const e of blk?.block?.data?.txs||[]){ const raw = unb64(e), d = new Uint8Array(await crypto.subtle.digest("SHA-256", raw)); if(hex(d).toUpperCase()===hash) return raw; }
+  throw Error("L2 transaction not found in block");
+}
+async function mapLimit(items, limit, fn){
+  const out = new Array(items.length); let next = 0;
+  async function worker(){ while(next < items.length){ const i = next++; out[i] = await fn(items[i], i); } }
+  await Promise.all(Array.from({length:Math.min(limit, items.length)}, worker));
+  return out;
+}
+async function assembleMediaRef(layer, ref){
+  if(!ref?.manifest_key) throw Error("Media reference has no manifest key.");
+  const mr = await query(layer.base, `/content/${ref.manifest_key}`);
+  const manifest = mr?.content ?? mr?.Content ?? mr ?? {};
+  if(manifest?.kind !== "media_manifest") throw Error("Invalid document manifest on Layer 2.");
+  let entries = [];
+  if(Array.isArray(manifest.chunks)) entries = manifest.chunks.slice();
+  else if(Array.isArray(manifest.map_pages)){
+    const pages = manifest.map_pages.slice().sort((a,b)=>Number(a.index)-Number(b.index));
+    const res = await mapLimit(pages, 6, async pr => { const r = await query(layer.base, `/content/${pr.key}`); const pg = r?.content ?? r?.Content ?? r ?? {}; if(pg?.kind!=="media_map_page") throw Error("Invalid chunk map."); return pg.chunks||[]; });
+    entries = res.flat();
+  }else throw Error("Document manifest contains no chunk index.");
+  entries.sort((a,b)=>Number(a.index)-Number(b.index));
+  if(Number(manifest.chunk_count||0) && entries.length !== Number(manifest.chunk_count)) throw Error("Chunk map incomplete.");
+  const parts = await mapLimit(entries, 6, async (entry, i) => {
+    const r = await query(layer.base, `/content/${entry.key}`);
+    const c = r?.content ?? r?.Content ?? r ?? {};
+    if(c?.kind !== "media_chunk") throw Error(`Invalid chunk ${i+1}.`);
+    const bytes = unb64(c?.data ?? c?.Data ?? "");
+    if(Number(entry.bytes||0) && bytes.byteLength !== Number(entry.bytes)) throw Error(`Chunk ${i+1} size mismatch.`);
+    const got = await sha256HexBytes(bytes);
+    if(entry.sha256 && got.toLowerCase() !== String(entry.sha256).toLowerCase()) throw Error(`Chunk ${i+1} hash mismatch.`);
+    return bytes;
+  });
+  const blob = new Blob(parts, {type: manifest.mime || "application/json"});
+  if(manifest.file_sha256){
+    const full = await sha256HexBytes(new Uint8Array(await blob.arrayBuffer()));
+    if(full.toLowerCase() !== String(manifest.file_sha256).toLowerCase()) throw Error("Complete document hash check failed.");
+  }
+  return blob;
+}
+async function postContentFromL2(p){
+  const raw = JSON.parse(dec.decode(await loadL2Raw(app.l2, p)));
+  let c = raw?.payload?.content;
+  if(c == null){ try{ const rec = await query(app.l2.base, `/content/${raw?.payload?.key||""}`); c = rec?.content ?? rec?.Content; }catch{} }
+  return { signer: String(raw.signer||""), content: (c && typeof c==="object") ? c : null };
+}
+
+/* ---------- commission model ---------- */
+function paidPostOf(e){
+  let p = e && e.payload; if(typeof p === "string"){ try{ p = JSON.parse(p); }catch{ p = null; } }
+  const pp = p && p.paid_post;
+  if(!pp || pp.app !== APP_TAG || !Array.isArray(pp.electorate)) return null;
+  return { ...pp, title: String(p.title||"Untitled"), amount: String(e.amount||p.amount||"0") };
+}
+function tally(proposal, signals){
+  const d = proposal.data, voters = d.electorate.slice().sort(), closeH = proposal.height + Number(d.duration_blocks);
+  const seen = {}, votes = {};
+  for(const s of signals){
+    if(s.height <= proposal.height || s.height > closeH || seen[s.signer] || !voters.includes(s.signer)) continue;
+    const v = s.data; if(!v || typeof v !== "object") continue;
+    if(v.schema !== d.schema || v.chain_id !== app.l1.chainID || v.kind !== "vote" || String(v.proposal_id||"").toUpperCase() !== proposal.hash.toUpperCase()) continue;
+    const c = String(v.choice||"").toUpperCase(); if(!["YES","NO","ABSTAIN"].includes(c)) continue;
+    seen[s.signer] = true; votes[s.signer] = c;
+  }
+  const yes = Object.values(votes).filter(x => x==="YES").length;
+  return { voters, closeH, votes, yes, required: Math.floor(voters.length*2/3)+1 };
+}
+async function loadModel(id){
+  const [e, signalsRaw, h] = await Promise.all([ query(app.l1.base, `/escrow/${id}`), query(app.l1.base, "/signals"), latestHeight() ]);
+  const signals = (Array.isArray(signalsRaw) ? signalsRaw : Object.values(signalsRaw||{})).map(s => ({ hash:String(s.hash||s.Hash||""), signer:String(s.signer||s.Signer||""), height:Number(s.height??s.Height??0), data:s.data??s.Data }));
+  const pp = paidPostOf(e);
+  if(!pp) throw Error("This escrow was not created with cWc Paid Posts, so it cannot be shown here.");
+  const proposal = e.proposal_id ? signals.find(s => eqi(s.hash, e.proposal_id) && s.data && s.data.kind === "proposal") : null;
+  const t = proposal ? tally(proposal, signals) : null;
+  const writer = e.bound_recipient || pp.writer;
+  const deliveries = signals.filter(s => s.signer === writer && s.data && s.data.schema === DELIVERY_SCHEMA && s.data.kind === "delivery" && eqi(s.data.escrow_id, id)).sort((a,b)=>a.height-b.height);
+  const final = !!t && h > t.closeH;
+  const outcome = final ? (t.yes >= t.required ? "APPROVED" : "NOT_APPROVED") : null;
+  return { id, e, pp, signals, proposal, t, writer, deliveries, h, final, outcome, open: e.status === "FUNDED_LOCKED", settled: SETTLED.has(e.status) };
+}
+
+/* ---------- block time ---------- */
+const trimNanos = s => String(s||"").replace(/(\.\d{3})\d+/, "$1");
+async function estimateSecPerBlock(){
+  try{
+    const st = await rpc(app.l1.base, "status", {});
+    const h = Number(st?.sync_info?.latest_block_height||0), t1 = Date.parse(trimNanos(st?.sync_info?.latest_block_time));
+    const h0 = Math.max(1, h-60); if(h - h0 < 5) return null;
+    const b0 = await rpc(app.l1.base, "block", {height:String(h0)});
+    const t0 = Date.parse(trimNanos(b0?.block?.header?.time));
+    const s = (t1 - t0) / 1000 / (h - h0);
+    return (isFinite(s) && s > 0.2 && s < 3600) ? s : null;
+  }catch{ return null; }
+}
+const spb = () => { const v = parseFloat(String($("cSpb").value).replace(",", ".")); return v > 0 ? v : null; };
+
+/* ---------- connect ---------- */
+function hostOf(v){ return String(v||"").trim().replace(/^https?:\/\//,"").replace(/\/.*$/,""); }
+async function connect(){
+  const btn = $("connectId"); btn.disabled = true;
+  try{
+    idOpen();   // must run directly inside the click so the pop-up is allowed
+    const l1h = hostOf($("l1host").value);
+    const l2h = hostOf($("l2host").value) || l1h.replace(/(^|[-.])l1(?=[-.])/i, "$1l2");
+    if(!l1h) throw Error("Enter the L1 host.");
+    $("conn").className = "muted"; $("conn").textContent = "Connecting…";
+    app.l1 = await connectLayer(`https://${l1h}${RPC_PATH}`, "layer-1");
+    app.l2 = null;
+    if(l2h && l2h !== l1h){ try{ app.l2 = await connectLayer(`https://${l2h}${RPC_PATH}`, "layer-2"); }catch(e){ log("Layer 2 not reachable (" + e.message + "). Delivered posts cannot be previewed here.", "warn"); } }
+    const protocol = Number(app.l1.cap?.ProtocolVersion || app.l1.state?.ProtocolVersion || 0);
+    if(protocol && protocol < 4) throw Error(`This chain is on protocol v${protocol}; vote-based escrow needs v4 or newer.`);
+    $("conn").textContent = "Waiting for you in the identity window…";
+    await idHandshake();
+    const r = await idCall("login", {});
+    app.wallet = { address:r.address, publicKey:r.publicKey, remote:true };
+    try{ localStorage.setItem("cwc-paid-l1host", $("l1host").value.trim()); }catch{}
+    await refreshWallet();
+    $("main").classList.remove("hide");
+    $("cUnit").textContent = "(" + (app.l1.state?.Denomination || "native") + ")";
+    const est = await estimateSecPerBlock();
+    if(est){ $("cSpb").value = est < 10 ? est.toFixed(2) : String(Math.round(est)); }
+    renderPlan();
+    log(`Connected to ${app.l1.chainID} as ${app.wallet.address}`, "ok");
+    await loadList();
+    const m = location.hash.match(/c=([0-9a-fA-F]{64})/);
+    if(m) await openCommission(m[1].toLowerCase());
+  }catch(e){ $("conn").className = "bad"; $("conn").textContent = e.message; log("Connect failed: " + e.message, "bad"); }
+  finally{ btn.disabled = false; }
+}
+async function refreshWallet(){
+  const acct = await readAccount(app.l1, me());
+  app.wallet.balance = String(acct.balance ?? "0");
+  let reg = null; try{ reg = await query(app.l1.base, `/wallet-registration/${me()}`); }catch{}
+  app.wallet.registered = !!(reg && reg.registered !== false);
+  $("conn").className = "muted";
+  $("conn").innerHTML = `Connected · <b>${esc(app.l1.chainID)}</b> · wallet <span class="mono">${esc(me())}</span><br>Balance: <b>${esc(fmt(app.wallet.balance))}</b> ${esc(app.l1.state?.Denomination||"")}`;
+  $("regRow").classList.toggle("hide", app.wallet.registered);
+}
+$("btnRegister").onclick = () => guarded($("btnRegister"), async () => {
+  await broadcast(app.l1, "REGISTER_WALLET", {}, "0");
+  await refreshWallet(); log("Wallet registered.", "ok");
+});
+
+/* ---------- generic action runner ---------- */
+async function guarded(btn, fn){
+  if(btn) btn.disabled = true;
+  try{ await fn(); }
+  catch(e){ log("Failed: " + e.message, "bad"); alert(e.message); }
+  finally{ if(btn) btn.disabled = false; }
+}
+
+/* ---------- new commission ---------- */
+function readForm(){
+  const title = $("cTitle").value.trim(), brief = $("cBrief").value.trim();
+  const writer = $("cWriter").value.trim().toLowerCase();
+  if(!title) throw Error("Enter a title.");
+  if(brief.length < 20) throw Error("Describe what you want,at least a few sentences,minimum 20 characters.");
+  if(!isAddr(writer)) throw Error("The writer's wallet address must look like cw followed by 40 letters/digits.");
+  if(writer === me()) throw Error("The writer must be a different wallet from yours.");
+  const reviewers = [...new Set($("cReviewers").value.split(/[\s,;]+/).map(x=>x.trim().toLowerCase()).filter(Boolean))].filter(a => a !== me());
+  for(const a of reviewers){ if(!isAddr(a)) throw Error("Reviewer address is not valid: " + a); if(a === writer) throw Error("The writer cannot also be a reviewer."); }
+  if(reviewers.length > 24) throw Error("At most 24 reviewers.");
+  const amountBase = toBase($("cAmount").value);
+  if(BigInt(amountBase) <= 0n) throw Error("Payment must be greater than zero.");
+  const dur = parseFloat(String($("cDur").value).replace(",", ".")), unit = Number($("cUnitSel").value), s = spb();
+  if(!(dur > 0)) throw Error("Enter how long voting stays open.");
+  if(!s) throw Error("Enter the seconds per block (the page could not measure it).");
+  const durationBlocks = Math.max(10, Math.ceil(dur * unit / s));
+  const electorate = [me(), ...reviewers].sort();
+  return { title, brief, writer, reviewers: reviewers.sort(), electorate, amountBase, durationBlocks, durationSec: durationBlocks * s };
+}
+function renderPlan(){
+  const box = $("plan");
+  try{
+    const f = readForm(), n = f.electorate.length, need = Math.floor(n*2/3)+1;
+    box.className = "note";
+    box.innerHTML = `<b>Rules that will be locked on-chain</b><br>
+      • <b>${esc(fmt(f.amountBase))}</b> leaves your balance now and sits in escrow.<br>
+      • ${n===1?"1 reviewer (only you) votes":n+" reviewers (you + "+(n-1)+" other"+(n>2?"s":"")+") vote"}. At least <b>${need} of ${n}</b> must vote YES.<br>
+      • Voting stays open about <b>${esc(fmtDur(f.durationSec))}</b> (${f.durationBlocks} blocks) after setup.<br>
+      • YES enough → paid to the writer. Anything else, including no votes → refunded to you.<br>
+      ${n===1?'<span class="warn">• You are the only reviewer, so the writer relies on you alone. Add independent reviewers to build trust.</span><br>':""}
+      • Network fees: about ${esc(fmt(String(BigInt(FEE)*3n)))} for the 3 setup steps.`;
+  }catch(e){ box.className = "note"; box.textContent = "Fill in the form to see the rules that will be locked on-chain. (" + e.message + ")"; }
+}
+["cTitle","cBrief","cWriter","cAmount","cReviewers","cDur","cUnitSel","cSpb"].forEach(id => $(id).addEventListener("input", renderPlan));
+
+function buildEscrowPayload(f){
+  return {
+    contract_schema:"chainware:generic-escrow:v1", contract_version:1, l2_reference:"chainware:generic-escrow:v1",
+    title:f.title, purpose:"Paid guest post: " + f.title, amount:f.amountBase, approved_recipient:f.writer,
+    proposal_binding:{ mode:"UNBOUND_AT_CREATION" },
+    branches:{
+      APPROVED:{ action:"RELEASE_TO_APPROVED_RECIPIENT", destination:f.writer },
+      NOT_APPROVED:{ action:"REFUND_TO_PAYOR", destination:"IMMUTABLE_PAYOR" },
+      TIMEOUT:{ enabled:false }
+    },
+    timeout_blocks:0, drip_wallet_threshold:1, drip_wallets:[me(), f.writer].sort(),
+    execution:{ authorization:"DRIP_WALLET_THRESHOLD", validator_must_derive_amount_and_destination_from_escrow:true, replay_protected:true },
+    paid_post:{ app:APP_TAG, version:1, writer:f.writer, reviewers:f.reviewers, electorate:f.electorate, duration_blocks:f.durationBlocks, brief:f.brief }
+  };
+}
+async function finishSetup(id){
+  const e = await query(app.l1.base, `/escrow/${id}`);
+  const pp = paidPostOf(e);
+  if(!pp) throw Error("Not a Paid Posts commission.");
+  if(e.payor !== me()) throw Error("Only the publisher can finish the setup.");
+  if(e.status !== "FUNDED_LOCKED") throw Error("This commission is already closed.");
+  if(e.proposal_id){ log("Setup already complete."); return; }
+  const signals = await query(app.l1.base, "/signals") || [];
+  const existing = (Array.isArray(signals)?signals:Object.values(signals)).find(s => (s.signer||s.Signer) === me() && (s.data||s.Data)?.kind === "proposal" && eqi((s.data||s.Data)?.escrow_contract_id, "cwsc:"+id));
+  let proposalHash;
+  if(existing){ proposalHash = String(existing.hash||existing.Hash).toUpperCase(); log("Reusing the review proposal already posted."); }
+  else{
+    log("Step 2 of 3: publishing the review proposal (reviewers and deadline)…");
+    const data = { schema:PROPOSAL_SCHEMA, chain_id:app.l1.chainID, kind:"proposal", title:pp.title, body:pp.brief, electorate:pp.electorate, duration_blocks:pp.duration_blocks,
+      escrow_contract_id:"cwsc:"+id, app:APP_TAG, app_version:1, writer:pp.writer, amount:pp.amount };
+    const r = await broadcast(app.l1, "SIGNAL", data);
+    proposalHash = r.hash;
+    const seen = await waitFor(async () => { const s = await query(app.l1.base, "/signals"); return (Array.isArray(s)?s:Object.values(s||{})).some(x => eqi(x.hash||x.Hash, proposalHash)); });
+    if(!seen) throw Error("The proposal was sent but is not visible on the chain yet. Open the commission again in a minute and press Finish setup.");
+  }
+  log("Step 3 of 3: linking the proposal to the escrow…");
+  await broadcast(app.l1, "ESCROW_BIND", { escrow_id:id, proposal_id:proposalHash });
+  log("Commission is live. Voting is open.", "ok");
+}
+$("btnCreate").onclick = () => guarded($("btnCreate"), async () => {
+  const f = readForm();
+  await refreshWallet();
+  const need = BigInt(f.amountBase) + BigInt(FEE) * 3n;
+  if(BigInt(app.wallet.balance) < need) throw Error(`Your balance (${fmt(app.wallet.balance)}) is not enough for the payment plus fees (${fmt(need.toString())}).`);
+  if(!confirm(`Lock ${fmt(f.amountBase)} for the writer ${short(f.writer)}?\n\n${f.electorate.length} reviewer(s) decide. If at least ${Math.floor(f.electorate.length*2/3)+1} vote YES within about ${fmtDur(f.durationSec)}, the writer is paid; otherwise you are refunded.\n\nYou cannot cancel once it is locked.`)) return;
+  log("Step 1 of 3: locking the payment in escrow…");
+  const r = await broadcast(app.l1, "ESCROW", buildEscrowPayload(f));
+  const id = r.hash.toLowerCase();
+  const found = await waitFor(async () => await query(app.l1.base, `/escrow/${id}`));
+  if(!found) throw Error("The escrow was sent but is not visible yet. Reload your commissions in a minute.");
+  log("Escrow created: " + id, "ok");
+  try{ await finishSetup(id); }
+  catch(e){ log("Setup is not finished: " + e.message + " Open the commission and press Finish setup.", "bad"); alert("Your payment is locked, but setup stopped: " + e.message + "\n\nOpen the commission and press 'Finish setup'."); }
+  await refreshWallet(); await loadList(); await openCommission(id);
+});
+
+/* ---------- list ---------- */
+function statusLabel(e){
+  switch(e.status){
+    case "RELEASED_TO_APPROVED_RECIPIENT": return ["Paid to writer","ok"];
+    case "REFUNDED_TO_PAYOR": case "REFUNDED_TIMEOUT_TO_PAYOR": return ["Refunded","warn"];
+    case "FUNDED_LOCKED": return e.proposal_id ? ["In review",""] : ["Setup unfinished","bad"];
+    default: return [e.status || "?", ""];
+  }
+}
+function rolesOf(e, pp){
+  const r = [], a = me();
+  if(e.payor === a) r.push("Publisher");
+  if(pp.writer === a) r.push("Writer");
+  if(pp.electorate.includes(a)) r.push("Reviewer");
+  return r;
+}
+async function loadList(){
+  $("listNote").className = "muted"; $("listNote").textContent = "Loading…"; $("reload").disabled = true;
+  try{
+    const all = await query(app.l1.base, "/escrows") || {};
+    const rows = [];
+    for(const [id, e] of Object.entries(all)){
+      const pp = paidPostOf(e); if(!pp) continue;
+      const roles = rolesOf(e, pp); if(!roles.length) continue;
+      rows.push({ id, e, pp, roles });
+    }
+    rows.sort((a,b) => Number(b.e.created_height||0) - Number(a.e.created_height||0));
+    const body = $("listBody"); body.innerHTML = "";
+    for(const r of rows){
+      const tr = document.createElement("tr"); tr.className = "click";
+      const [lbl, cls] = statusLabel(r.e);
+      tr.innerHTML = `<td>${esc(r.pp.title)}</td><td>${r.roles.map(x=>`<span class="pill me">${esc(x)}</span>`).join("")}</td><td>${esc(fmt(r.pp.amount))}</td><td><span class="pill ${cls}">${esc(lbl)}</span></td>`;
+      tr.onclick = () => openCommission(r.id);
+      body.appendChild(tr);
+    }
+    $("listTable").classList.toggle("hide", !rows.length);
+    $("listNote").textContent = rows.length ? `${rows.length} commission${rows.length===1?"":"s"}. Click one to open it.` : "You are not part of any commission yet. Create one, or paste a commission ID you were sent.";
+  }catch(e){ $("listNote").className = "bad"; $("listNote").textContent = "Could not load: " + e.message; }
+  finally{ $("reload").disabled = false; }
+}
+$("reload").onclick = loadList;
+$("btnOpen").onclick = () => guarded($("btnOpen"), async () => {
+  const id = $("openId").value.trim().toLowerCase().replace(/^cwsc:/, "");
+  if(!/^[0-9a-f]{64}$/.test(id)) throw Error("A commission ID is 64 letters/digits (0-9, a-f).");
+  await openCommission(id);
+});
+
+/* ---------- tabs ---------- */
+function showTab(name){
+  $("tabList").classList.toggle("on", name==="list"); $("tabNew").classList.toggle("on", name==="new");
+  $("viewList").classList.toggle("hide", name!=="list"); $("viewNew").classList.toggle("hide", name!=="new");
+  $("viewDetail").classList.add("hide");
+}
+$("tabList").onclick = () => { showTab("list"); loadList(); };
+$("tabNew").onclick = () => { showTab("new"); renderPlan(); };
+
+/* ---------- commission detail ---------- */
+async function openCommission(id){
+  try{
+    view.id = id;
+    const m = await loadModel(id);
+    view.model = m;
+    try{ history.replaceState(null, "", "#c=" + id); }catch{}
+    $("viewList").classList.add("hide"); $("viewNew").classList.add("hide"); $("viewDetail").classList.remove("hide");
+    renderDetail(m);
+    window.scrollTo({top:0, behavior:"smooth"});
+  }catch(e){ log("Could not open commission: " + e.message, "bad"); alert(e.message); }
+}
+function addrHtml(a, m){
+  const tags = [];
+  if(a === me()) tags.push('<span class="pill me">you</span>');
+  if(a === m.e.payor) tags.push('<span class="pill">publisher</span>');
+  if(a === m.writer) tags.push('<span class="pill">writer</span>');
+  return `<span class="mono" title="${esc(a)}">${esc(short(a))}</span>${tags.join("")}`;
+}
+function renderDetail(m){
+  const { id, e, pp, proposal, t, deliveries, h, final, outcome, open, settled } = m;
+  const a = me(), isPayor = a === e.payor, isWriter = a === m.writer, isReviewer = pp.electorate.includes(a);
+  const sec = spb() || null;
+  const eta = blocks => sec ? ` (about ${esc(fmtDur(blocks*sec))})` : "";
+  const [lbl, cls] = statusLabel(e);
+  const voters = t ? t.voters : pp.electorate.slice().sort();
+  const required = t ? t.required : Math.floor(voters.length*2/3)+1;
+
+  // timeline
+  const delivered = deliveries.length > 0;
+  const steps = [
+    { done:true, title:"Payment locked in escrow", text:`${esc(fmt(pp.amount))} ${esc(e.asset||"")} · escrow ${esc(short(id))}` },
+    { done:!!e.proposal_id, title:"Reviewers and deadline fixed on-chain", text: e.proposal_id ? `${voters.length} reviewer(s) · closes at block ${t?t.closeH:"?"}` : "Not finished yet" },
+    { done:delivered, title:"Article delivered by the writer", text: delivered ? `${deliveries.length} delivery${deliveries.length>1?" submissions":""}` : "Waiting for the writer" },
+    { done:final||settled, title:"Reviewers vote", text: !t ? "Opens after setup" : final||settled ? `Closed: ${t.yes} YES of ${voters.length} (needed ${required}) → ${outcome==="APPROVED"?"approved":"not approved"}` : `Open · ${Object.keys(t.votes).length} of ${voters.length} voted, ${t.yes} YES (need ${required}) · closes at block ${t.closeH}, now ${h}${eta(Math.max(0,t.closeH-h))}` },
+    { done:settled, title:"Money moved", text: settled ? (e.status==="RELEASED_TO_APPROVED_RECIPIENT" ? "Paid to the writer" : "Refunded to the publisher") + (e.execution_height?` at block ${esc(e.execution_height)}`:"") : (final ? "Ready: press Settle" : "After the vote closes") }
+  ];
+  const firstOpen = steps.findIndex(s => !s.done);
+  const stepsHtml = steps.map((s,i)=>`<li class="${s.done?"done":i===firstOpen?"now":""}"><span class="dot">${s.done?"✓":i+1}</span><div><b>${esc(s.title)}</b><div class="muted">${s.text}</div></div></li>`).join("");
+
+  // who is who
+  const people = `<div class="kv">
+    <div>Publisher</div><div>${addrHtml(e.payor, m)}</div>
+    <div>Writer</div><div>${addrHtml(m.writer, m)}</div>
+    <div>Reviewers</div><div>${voters.map(v=>addrHtml(v,m)).join("<br>")}</div>
+    <div>Payment</div><div><b>${esc(fmt(pp.amount))}</b> ${esc(e.asset||"")} · still locked: ${esc(fmt(e.balance||"0"))}</div>
+    <div>Rule</div><div>At least ${required} of ${voters.length} reviewers vote YES by block ${t?t.closeH:"(after setup)"} → writer is paid. Otherwise → publisher is refunded. This cannot be changed.</div>
+  </div>`;
+
+  // panels
+  let panels = "";
+  if(!e.proposal_id && open){
+    panels += isPayor
+      ? `<div class="note warn"><b>Setup is not finished.</b> The payment is locked but reviewers cannot vote yet. <div style="margin-top:8px"><button data-act="finish">Finish setup</button></div></div>`
+      : `<div class="note warn">The publisher has not finished the setup yet. Do not start work until this page shows the review step as done.</div>`;
+  }
+  if(isWriter && open && e.proposal_id) panels += `<div class="note good"><b>Your payment is locked.</b> The publisher cannot withdraw it while voting runs. It is released to you if at least ${required} of ${voters.length} reviewers vote YES by block ${t.closeH}; otherwise it returns to the publisher. Check that you trust the reviewers listed above.</div>`;
+
+  // deliveries
+  let dHtml = "";
+  if(deliveries.length){
+    dHtml = deliveries.map((s,i)=>{
+      const d = s.data||{};
+      const url = /^https?:\/\//i.test(String(d.url||"")) ? String(d.url) : "";
+      return `<div class="note"><b>${esc(d.title||"Delivery")}</b> <span class="muted">· block ${esc(s.height)}${i===deliveries.length-1?" · latest":""}</span>
+        ${d.note?`<div>${esc(d.note)}</div>`:""}
+        <div class="row" style="margin-top:6px">${d.l2_tx_hash?`<button class="ghost" data-act="preview" data-i="${i}">Read the article here</button>`:""}${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open link ↗</a>`:""}</div></div>`;
+    }).join("") + `<div id="pvBox" class="hide"><label class="opt" style="display:inline-flex;gap:6px;align-items:center;margin:0;color:var(--muted)"><input type="checkbox" id="pvScripts" style="width:auto"> Allow the article's scripts (only for interactive pages you trust)</label><div id="pvInfo" class="muted"></div><iframe id="pv" sandbox=""></iframe></div>`;
+  }else dHtml = `<p class="muted">Nothing delivered yet.</p>`;
+
+  // writer delivery form
+  let deliverForm = "";
+  if(isWriter && open && e.proposal_id && !final){
+    deliverForm = `<h3>Submit your article</h3>
+      <div class="muted">Publish the article on your blog first (with your usual publisher), then submit it here.</div>
+      <label>What are you delivering?</label>
+      <select id="dKind"><option value="post">A post from my blog</option><option value="link">A link to the article</option></select>
+      <div id="dPostWrap"><label>Your recent posts</label><select id="dPost"><option>Loading…</option></select></div>
+      <div id="dLinkWrap" class="hide"><label>Article link (https://…)</label><input id="dUrl" placeholder="https://"></div>
+      <label>Note to the reviewers <span class="muted">(optional)</span></label><input id="dNote" maxlength="400">
+      <div class="row" style="margin-top:10px"><button data-act="deliver">Submit delivery</button></div>`;
+  }
+
+  // voting
+  let vote = "";
+  if(t){
+    const rows = voters.map(v => `<tr><td>${addrHtml(v,m)}</td><td>${t.votes[v] ? `<span class="pill ${t.votes[v]==="YES"?"ok":t.votes[v]==="NO"?"bad":""}">${esc(t.votes[v])}</span>` : '<span class="muted">not voted</span>'}</td></tr>`).join("");
+    vote = `<table><thead><tr><th>Reviewer</th><th>Vote</th></tr></thead><tbody>${rows}</tbody></table>`;
+    if(isReviewer && open && !final){
+      vote += t.votes[a]
+        ? `<p class="muted">You voted ${esc(t.votes[a])}. The first vote counts and cannot be changed.</p>`
+        : `<div class="row" style="margin-top:10px"><button class="good" data-act="vote" data-c="YES">Vote YES (approve)</button><button class="danger" data-act="vote" data-c="NO">Vote NO</button><button class="ghost" data-act="vote" data-c="ABSTAIN">Abstain</button><span class="muted">Read the delivery first. Your first vote is final.</span></div>`;
+    }else if(isReviewer && !final && !open){ /* settled */ }
+    if(isReviewer && !delivered && !final) vote += `<p class="muted">The writer has not delivered yet. You can wait before voting.</p>`;
+  }
+
+  // settlement
+  let settle = "";
+  if(settled){
+    settle = `<div class="note good">${e.status==="RELEASED_TO_APPROVED_RECIPIENT" ? "The reviewers approved. The payment was paid to the writer." : "The reviewers did not approve in time. The payment was refunded to the publisher."}</div>`;
+  }else if(final && open){
+    const canSettle = e.payor === a || m.writer === a;
+    settle = `<div class="note ${outcome==="APPROVED"?"good":"warn"}"><b>Voting is closed: ${outcome==="APPROVED"?"approved":"not approved"}.</b> The money will go to ${outcome==="APPROVED"?"the writer":"the publisher"}.
+      ${canSettle?`<div style="margin-top:8px"><button data-act="settle">Settle now</button> <span class="muted">Needs two signatures and a small balance for fees.</span></div>`:`<div class="muted">The publisher or the writer can press Settle.</div>`}</div>`;
+  }
+
+  $("viewDetail").innerHTML = `
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><button class="ghost" data-act="back">← Back</button>
+        <div class="row"><button class="ghost" data-act="refresh">Refresh</button><button class="ghost" data-act="copylink">Copy invite link</button></div></div>
+      <h2 style="margin-top:14px">${esc(pp.title)} <span class="pill ${cls}">${esc(lbl)}</span></h2>
+      <div class="muted mono">ID ${esc(id)}</div>
+      ${panels}
+      <h3>Progress</h3><ul class="steps">${stepsHtml}</ul>
+      ${settle}
+    </div>
+    <div class="card"><h2>Terms</h2>${people}<h3>The brief</h3><pre class="brief">${esc(pp.brief)}</pre></div>
+    <div class="card"><h2>Delivery</h2>${dHtml}${deliverForm}</div>
+    <div class="card"><h2>Review and vote</h2>${vote || '<p class="muted">Voting opens once the setup is finished.</p>'}</div>`;
+  if(deliverForm) initDeliverForm();
+}
+
+function initDeliverForm(){
+  const sync = () => { const post = $("dKind").value === "post"; $("dPostWrap").classList.toggle("hide", !post); $("dLinkWrap").classList.toggle("hide", post); };
+  $("dKind").onchange = sync; sync();
+  loadMyPosts().catch(err => { $("dPost").innerHTML = `<option value="">(could not load: ${esc(err.message)})</option>`; });
+}
+let myPosts = [];
+async function loadMyPosts(){
+  const sel = $("dPost");
+  if(!app.l2){ sel.innerHTML = '<option value="">Layer 2 is not reachable; use "A link" instead</option>'; return; }
+  const raw = await query(app.l1.base, "/l2-pointers");
+  const list = (Array.isArray(raw) ? raw : Object.values(raw||{})).filter(p => String(field(p,"signer","Signer")||"") === me() && ["POST","SUBMIT_POST"].includes(String(field(p,"action","Action")||"").toUpperCase()));
+  list.sort((a,b) => Number(field(b,"created_height","CreatedHeight")||0) - Number(field(a,"created_height","CreatedHeight")||0));
+  const out = [];
+  await mapLimit(list.slice(0, 20), 5, async p => {
+    try{
+      const { content:c } = await postContentFromL2(p);
+      if(c && c.kind === "post" && c.title) out.push({ title:String(c.title), page_id:String(c.page_id||c.id||""), l2_tx_hash:String(field(p,"l2_tx_hash","L2TxHash")||"").toUpperCase(), l2_height:Number(field(p,"l2_height","L2Height")||0), h:Number(field(p,"created_height","CreatedHeight")||0) });
+    }catch{}
+  });
+  out.sort((a,b)=>b.h-a.h); myPosts = out;
+  sel.innerHTML = out.length ? out.map((o,i)=>`<option value="${i}">${esc(o.title)}</option>`).join("") : '<option value="">No posts found for your wallet. Publish one first or use "A link".</option>';
+}
+
+/* ---------- detail actions ---------- */
+$("viewDetail").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-act]"); if(!b) return;
+  const act = b.dataset.act, m = view.model;
+  if(act === "back"){ try{ history.replaceState(null,"",location.pathname+location.search); }catch{} showTab("list"); loadList(); return; }
+  if(act === "copylink"){
+    const link = location.href.split("#")[0] + "#c=" + view.id;
+    (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(()=>log("Invite link copied. Send it to the writer and reviewers.","ok"), ()=>prompt("Copy this link:", link));
+    return;
+  }
+  guarded(b, async () => {
+    if(act === "refresh"){ await openCommission(view.id); return; }
+    if(act === "finish"){ await finishSetup(view.id); await openCommission(view.id); return; }
+    if(act === "vote"){ await castVote(m, b.dataset.c); await openCommission(view.id); return; }
+    if(act === "deliver"){ await submitDelivery(m); await openCommission(view.id); return; }
+    if(act === "settle"){ await settle(m); await refreshWallet(); await openCommission(view.id); return; }
+    if(act === "preview"){ await previewDelivery(m, Number(b.dataset.i)); return; }
+  });
+});
+
+async function castVote(m, choice){
+  if(!m.proposal || !m.t) throw Error("Voting is not open.");
+  const h = await latestHeight();
+  if(h >= m.t.closeH) throw Error("Voting has just closed.");
+  if(!confirm(`Vote ${choice} on "${m.pp.title}"?\n\nYour first vote is final.`)) return;
+  await broadcast(app.l1, "SIGNAL", { schema:m.proposal.data.schema, chain_id:app.l1.chainID, kind:"vote", proposal_id:m.proposal.hash, choice });
+  log(`Vote ${choice} recorded.`, "ok");
+}
+async function submitDelivery(m){
+  const kind = $("dKind").value, note = $("dNote").value.trim().slice(0,400);
+  const data = { schema:DELIVERY_SCHEMA, kind:"delivery", escrow_id:m.id, note, created_at:new Date().toISOString() };
+  if(kind === "post"){
+    const p = myPosts[Number($("dPost").value)];
+    if(!p) throw Error("Choose one of your posts.");
+    Object.assign(data, { title:p.title, page_id:p.page_id, l2_tx_hash:p.l2_tx_hash, l2_height:p.l2_height });
+  }else{
+    const url = $("dUrl").value.trim();
+    if(!/^https?:\/\/\S+$/i.test(url)) throw Error("Enter a link starting with https://");
+    Object.assign(data, { title:"Article link", url });
+  }
+  if(!confirm(`Submit this delivery to the reviewers?\n\n${data.title}`)) return;
+  await broadcast(app.l1, "SIGNAL", data);
+  log("Delivery submitted.", "ok");
+}
+async function settle(m){
+  if(!m.final || !m.open) throw Error("Nothing to settle yet.");
+  const a = me(), drip = [m.e.payor, m.writer];
+  if(!drip.includes(a)) throw Error("Only the publisher or the writer can settle.");
+  const fresh = await loadModel(m.id);
+  if(!fresh.final) throw Error("Voting is not closed yet.");
+  if(!confirm(`Settle now?\n\nResult: ${fresh.outcome==="APPROVED"?"payment goes to the writer":"payment is refunded to the publisher"}.`)) return;
+  const approved = fresh.e.drip_approvals && fresh.e.drip_approvals[a];
+  const anyApproved = drip.some(w => fresh.e.drip_approvals && fresh.e.drip_approvals[w]);
+  if(!anyApproved && !approved){
+    log("Settlement step 1 of 2: confirming the vote result…");
+    await broadcast(app.l1, "ESCROW_DRIP_APPROVE", { escrow_id:m.id, expected_outcome:fresh.outcome });
+  }
+  log("Settlement step 2 of 2: moving the money…");
+  await broadcast(app.l1, "ESCROW_EXECUTE", { escrow_id:m.id });
+  log("Settled.", "ok");
+}
+async function previewDelivery(m, i){
+  const d = m.deliveries[i].data;
+  if(!app.l2) throw Error("Layer 2 is not reachable from this page, so the article cannot be shown here.");
+  const { signer, content:c } = await postContentFromL2({ l2_tx_hash:d.l2_tx_hash, l2_height:d.l2_height });
+  if(!c) throw Error("The post record could not be read.");
+  let html = typeof c.html === "string" ? c.html : "", images = (c.images && typeof c.images === "object") ? c.images : {};
+  if(c.doc_ref){
+    log("Downloading the article from Layer 2…");
+    const blob = await assembleMediaRef(app.l2, c.doc_ref);
+    const parsed = JSON.parse(await blob.text());
+    html = String(parsed.html || ""); images = parsed.images || images;
+  }
+  html = html.replace(/cwc:(img\d{1,3})\b/g, (x, k) => (typeof images[k]==="string" && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(images[k])) ? images[k] : x);
+  const frame = $("pv"), box = $("pvBox");
+  box.classList.remove("hide");
+  $("pvInfo").innerHTML = (signer === m.writer ? '<span class="ok">✓ Signed by the writer\'s wallet.</span>' : '<span class="bad">✗ This post was NOT signed by the writer\'s wallet.</span>') + " " + esc(c.title || "");
+  const apply = () => { frame.setAttribute("sandbox", $("pvScripts").checked ? "allow-scripts" : ""); frame.srcdoc = `<base target="_blank"><style>body{margin:0;padding:16px;font:16px/1.55 system-ui,sans-serif;color:#1f1d1a;background:#fff}img,video,svg{max-width:100%;height:auto}</style>${html}`; };
+  $("pvScripts").onchange = apply; apply();
+  box.scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+/* ---------- start ---------- */
+$("getpaid").classList.toggle("on")
+try{ const s = localStorage.getItem("cwc-paid-l1host"); if(s) $("l1host").value = s; }catch{}
+$("idUrl").value = identityUrl;
+$("connectId").onclick = connect;
+</script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- This page makes NO network requests at all: it can only talk to the window that opened it. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>cWc Identity</title>
+<style>
+:root{--bg:#f4f2ed;--card:#fff;--ink:#1f1d1a;--mute:#78736b;--line:#e3ded3;--acc:#8a5a2b;--bad:#b3261e;--ok:#2e7d32;--chip:#efe8da}
+@media (prefers-color-scheme:dark){:root{--bg:#171512;--card:#211e1a;--ink:#ece7dd;--mute:#9a9388;--line:#37322b;--acc:#d3a06a;--bad:#ff8a80;--ok:#81c784;--chip:#2c2720}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card);display:flex;justify-content:space-between;align-items:center}
+header b{font-family:Georgia,serif;font-size:1.15rem}
+main{max-width:480px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{margin:0 0 8px;font-size:1.05rem}
+label{display:block;font-size:.8rem;color:var(--mute);margin:10px 0 4px}
+input[type=text],input[type=password]{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--acc)}
+button.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.mono{font:12px ui-monospace,Consolas,monospace;word-break:break-all}
+.mute{color:var(--mute);font-size:.85rem}.bad{color:var(--bad)}.ok{color:var(--ok)}
+.acct{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.acct:first-of-type{border-top:0}.acct .grow{flex:1;min-width:0}
+.site{background:var(--chip);border-radius:8px;padding:8px 10px;margin:8px 0;font-weight:600;word-break:break-all}
+dl{margin:8px 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.88rem}dt{color:var(--mute)}dd{margin:0;word-break:break-all}
+</style>
+</head>
+<body>
+<header><b>cWc Identity</b><span id="top"></span></header>
+<main id="main"></main>
+
+<script>
+"use strict";
+/* ============================ SETTINGS (edit these) ============================ */
+const CONFIG = {
+  /* Only these website addresses may talk to this page. Use the exact origin: scheme + domain (+ port).
+     Example: "https://publish.yourdomain.com" or "http://localhost:8000". Not "file://". */
+  ALLOWED_ORIGINS: [
+    "https://diamondthumb.com",
+    // "https://publish.example.com",
+  ],
+  /* Transaction types a site may ask to be signed. Anything else is refused. */
+  ALLOWED_TYPES: ["STORE", "L2_POINTER", "REGISTER_WALLET", "L2_FUND", "STORAGE_FUND","ESCROW","SIGNAL","ESCROW_BIND","ESCROW_DRIP_APPROVE","ESCROW_EXECUTE"],   /* the last two move money: always asked, never automatic */
+  /* Types a site may sign without asking each time, after you tick "allow for a while". */
+  AUTO_TYPES: ["STORE", "L2_POINTER"],
+  AUTO_MINUTES: 10,
+  IDLE_LOCK_MINUTES: 15,
+  PBKDF2_ITER: 310000,
+  L1_FEE_ATOMIC: "400000000",
+  MAX_DOC_BYTES: 12000000,
+  VAULT_KEY: "cwc-identity:vault"
+};
+/* ================================================================================ */
+
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const main = $("main");
+
+/* ---------- small helpers ---------- */
+function b64(bytes){let s="";const a=new Uint8Array(bytes);for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode(...a.subarray(i,Math.min(i+0x8000,a.length)));return btoa(s)}
+function unb64(v){const s=atob(String(v||"")),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+function hex(bytes){return Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,"0")).join("")}
+function fromHex(v){const s=String(v).replace(/^0x/i,"");const a=new Uint8Array(s.length/2);for(let i=0;i<a.length;i++)a[i]=parseInt(s.slice(i*2,i*2+2),16);return a}
+function concat(...arr){const n=arr.reduce((s,a)=>s+a.length,0),out=new Uint8Array(n);let o=0;for(const a of arr){out.set(a,o);o+=a.length}return out}
+function b64url(v){let s=String(v).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return unb64(s)}
+function goJSONStringify(v){const e=JSON.stringify(v);return String(e===undefined?"null":e).replace(/[<>&\u2028\u2029]/g,c=>({"<":"\\u003c",">":"\\u003e","&":"\\u0026","\u2028":"\\u2028","\u2029":"\\u2029"})[c])}
+function el(tag, props, ...kids){
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e[k] = v;
+  }
+  for (const k of kids.flat()) if (k != null) e.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return e;
+}
+const short = a => a.slice(0, 8) + "…" + a.slice(-6);
+function show(...nodes){ main.replaceChildren(...nodes); }
+
+/* ---------- wallet derivation (identical to the feed and publisher) ---------- */
+async function walletFromSeed(seed){
+  const phrase=String(seed||"").trim().toLowerCase().split(/\s+/).filter(Boolean).join(" ");
+  const n=phrase?phrase.split(" ").length:0;
+  if(![12,15,24].includes(n))throw Error("Recovery words must contain exactly 12, 15, or 24 words.");
+  const material=await crypto.subtle.importKey("raw",enc.encode(phrase),"PBKDF2",false,["deriveBits"]);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-512",salt:enc.encode("chainWare Social v5 wallet seed"),iterations:210000},material,256);
+  const pkcs8=concat(fromHex("302e020100300506032b657004220420"),new Uint8Array(bits));
+  const extractable=await crypto.subtle.importKey("pkcs8",pkcs8,{name:"Ed25519"},true,["sign"]);
+  const jwk=await crypto.subtle.exportKey("jwk",extractable);
+  const pub=b64url(jwk.x);
+  const digest=new Uint8Array(await crypto.subtle.digest("SHA-256",pub));
+  const address="cw"+hex(digest.slice(0,20));
+  const privateKey=await crypto.subtle.importKey("pkcs8",pkcs8,{name:"Ed25519"},false,["sign"]);   /* cannot be exported again */
+  return{address,publicKey:b64(pub),privateKey};
+}
+
+/* ---------- encrypted vault (password -> AES-GCM key) ---------- */
+function loadVault(){ try { const v = JSON.parse(localStorage.getItem(CONFIG.VAULT_KEY) || "null"); return v && v.v === 1 ? v : null; } catch { return null; } }
+function saveVault(v){ localStorage.setItem(CONFIG.VAULT_KEY, JSON.stringify(v)); }
+async function deriveKey(password, salt, iter){
+  const m = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt, iterations: iter }, m, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function seal(key, text){ const iv = crypto.getRandomValues(new Uint8Array(12)); const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(text)); return { iv: b64(iv), ct: b64(ct) }; }
+async function unseal(key, box){ return dec.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(box.iv) }, key, unb64(box.ct))); }
+
+/* ---------- session (memory only; wiped on lock) ---------- */
+const S = { key: null, signers: new Map(), grants: new Map(), unlockWaiters: [], accWaiters: [], busy: false };
+let lastActivity = Date.now();
+const touch = () => { lastActivity = Date.now(); };
+["click", "keydown"].forEach(ev => addEventListener(ev, touch));
+setInterval(() => { if (S.key && !S.busy && !pending && Date.now() - lastActivity > CONFIG.IDLE_LOCK_MINUTES * 60000) lock(); }, 15000);
+
+let askDone = null;
+function lock(){
+  if (askDone) askDone(false);
+  S.key = null; S.signers.clear(); S.grants.clear();
+  render();
+}
+async function getSigner(acc){
+  let w = S.signers.get(acc.address);
+  if (w) return w;
+  const seed = await unseal(S.key, acc);
+  w = await walletFromSeed(seed);
+  if (w.address !== acc.address) throw Error("Stored account does not match its address.");
+  S.signers.set(acc.address, w);
+  return w;
+}
+
+/* ---------- screens ---------- */
+let noticeText = "";
+function render(){
+  $("top").replaceChildren(S.key ? el("button", { class: "ghost", onclick: lock }, "Lock") : "");
+  if (window.top !== window) { show(el("div", { class: "card bad" }, "This page must not be shown inside another page.")); return; }
+  const v = loadVault();
+  if (!v) screenSetup(); else if (!S.key) screenUnlock(); else screenHome();
+  const msgs = [];
+  if (noticeText) msgs.push(noticeText);
+  if (!window.opener) msgs.push("This window was not opened by a site, so it can only manage accounts. To sign in to the publisher, use its \"Sign in with cWc Identity\" button.");
+  if (msgs.length) main.prepend(...msgs.map(m => el("div", { class: "card bad" }, m)));
+}
+
+function screenSetup(){
+  const pw = el("input", { type: "password", autocomplete: "new-password" }), pw2 = el("input", { type: "password", autocomplete: "new-password" });
+  const msg = el("p", { class: "bad" });
+  const go = el("button", { onclick: async () => {
+    msg.textContent = "";
+    if (pw.value.length < 8) { msg.textContent = "Use at least 8 characters."; return; }
+    if (pw.value !== pw2.value) { msg.textContent = "The two passwords are different."; return; }
+    go.disabled = true; go.textContent = "Working…";
+    try {
+      const salt = crypto.getRandomValues(new Uint8Array(16)), key = await deriveKey(pw.value, salt, CONFIG.PBKDF2_ITER);
+      saveVault({ v: 1, iter: CONFIG.PBKDF2_ITER, salt: b64(salt), verify: await seal(key, "cwc-identity-ok"), accounts: [] });
+      S.key = key; touch(); S.unlockWaiters.splice(0).forEach(f => f()); render();
+    } catch (e) { msg.textContent = e.message; go.disabled = false; go.textContent = "Create vault"; }
+  } }, "Create vault");
+  show(el("div", { class: "card" },
+    el("h2", {}, "Create your identity vault"),
+    el("p", { class: "mute" }, "Your recovery words are kept here, encrypted with this password, and never leave this page. Other sites only ask this page to sign. If you forget the password the vault cannot be opened (your recovery words still work elsewhere)."),
+    el("label", {}, "New password"), pw, el("label", {}, "Repeat password"), pw2, msg, el("div", { class: "row" }, go)));
+}
+
+function screenUnlock(onDone){
+  const v = loadVault(), pw = el("input", { type: "password", autocomplete: "current-password" }), msg = el("p", { class: "bad" });
+  const go = el("button", { onclick: async () => {
+    msg.textContent = ""; go.disabled = true; go.textContent = "Unlocking…";
+    try {
+      const key = await deriveKey(pw.value, unb64(v.salt), v.iter);
+      if (await unseal(key, v.verify) !== "cwc-identity-ok") throw 0;
+      S.key = key; touch(); pw.value = "";
+      const w = S.unlockWaiters.splice(0); w.forEach(f => f());
+      render();
+    } catch { msg.textContent = "Wrong password."; go.disabled = false; go.textContent = "Unlock"; }
+  } }, "Unlock");
+  pw.addEventListener("keydown", e => { if (e.key === "Enter") go.click(); });
+  show(...(pending ? [requestBanner(pending)] : []), el("div", { class: "card" }, el("h2", {}, "Unlock"), el("label", {}, "Password"), pw, msg, el("div", { class: "row" }, go)));
+  pw.focus();
+}
+
+function screenHome(){
+  const v = loadVault(), msg = el("p", { class: "mute" });
+  const banner = pending && pending.method === "login" && !v.accounts.length ? [el("div", { class: "card" }, el("b", {}, "A site wants to sign in"), el("div", { class: "site" }, pending.origin), el("p", { class: "mute" }, "Add an account below to continue."))] : [];
+  const list = v.accounts.length ? v.accounts.map(a => el("div", { class: "acct" },
+      el("div", { class: "grow" }, el("b", {}, a.label || "Account"), el("div", { class: "mono" }, a.address)),
+      el("button", { class: "danger", onclick: () => {
+        if (!confirm("Remove this account from the vault?\n\nMake sure you still have its recovery words.")) return;
+        v.accounts = v.accounts.filter(x => x.address !== a.address); saveVault(v); S.signers.delete(a.address);
+        for (const [o, g] of S.grants) if (g.address === a.address) S.grants.delete(o);
+        render();
+      } }, "Remove")))
+    : [el("p", { class: "mute" }, "No accounts yet. Add one below.")];
+  const seed = el("input", { type: "password", autocomplete: "off", placeholder: "12, 15 or 24 recovery words" }), label = el("input", { type: "text", maxLength: 30, placeholder: "e.g. My blog" });
+  const add = el("button", { onclick: async () => {
+    msg.className = "mute"; msg.textContent = "Checking words (a few seconds)…"; add.disabled = true;
+    try {
+      const w = await walletFromSeed(seed.value);
+      if (v.accounts.some(x => x.address === w.address)) throw Error("That account is already saved.");
+      v.accounts.push({ address: w.address, publicKey: w.publicKey, label: label.value.trim(), ...(await seal(S.key, seed.value.trim().toLowerCase().split(/\s+/).join(" "))) });
+      saveVault(v); S.signers.set(w.address, w); seed.value = ""; label.value = ""; S.accWaiters.splice(0).forEach(f => f()); render();
+    } catch (e) { msg.className = "bad"; msg.textContent = e.message; add.disabled = false; }
+  } }, "Save account");
+  const sites = [...S.grants.entries()];
+  show(...banner, el("div", { class: "card" }, el("h2", {}, "Your accounts"), ...list),
+    el("div", { class: "card" }, el("h2", {}, "Add an account"), el("label", {}, "Name (optional)"), label, el("label", {}, "Recovery words"), seed, msg, el("div", { class: "row" }, add)),
+    el("div", { class: "card" }, el("h2", {}, "Connected sites"),
+      ...(sites.length ? sites.map(([o, g]) => el("div", { class: "acct" }, el("div", { class: "grow" }, el("div", { class: "mono" }, o), el("div", { class: "mute" }, short(g.address))),
+        el("button", { class: "ghost", onclick: () => { S.grants.delete(o); render(); } }, "Disconnect"))) : [el("p", { class: "mute" }, "None right now. Sites are disconnected when you lock.")])));
+}
+
+/* ---------- requests from the site that opened this window ---------- */
+let pending = null;                      /* request being shown */
+const queue = [];
+let working = false;
+function requestBanner(r){ return el("div", { class: "card" }, el("b", {}, "A site is asking for access"), el("div", { class: "site" }, r.origin), el("p", { class: "mute" }, "Unlock to continue.")); }
+function waitUnlocked(){ return S.key ? Promise.resolve() : new Promise(r => { S.unlockWaiters.push(r); render(); }); }
+function ask(r, nodes, okLabel, extra){            /* resolves true/false */
+  return new Promise(resolve => {
+    const done = v => { pending = null; askDone = null; resolve(v); };
+    askDone = done;
+    const ok = el("button", { onclick: () => done(extra ? extra() : true) }, okLabel);
+    const no = el("button", { class: "ghost", onclick: () => done(false) }, "Deny");
+    show(el("div", { class: "card" }, ...nodes, el("div", { class: "row" }, ok, no)));
+    try { window.focus(); } catch {}
+  });
+}
+function reply(r, ok, payload){ try { r.source.postMessage({ cwcIdentity: 1, id: r.id, ok, ...(ok ? { result: payload } : { error: payload }) }, r.origin); } catch {} }
+
+async function handle(r){
+  pending = r;
+  await waitUnlocked();
+  if (r.method === "login") {
+    while (!loadVault().accounts.length) await new Promise(res => { S.accWaiters.push(res); render(); });
+    const v = loadVault(), have = S.grants.get(r.origin);
+    if (have && v.accounts.some(a => a.address === have.address)) { const a = v.accounts.find(x => x.address === have.address); pending = null; reply(r, true, { address: a.address, publicKey: a.publicKey }); return render(); }
+    const sel = el("select", { style: "width:100%;padding:9px" }, v.accounts.map(a => el("option", { value: a.address }, (a.label ? a.label + " · " : "") + short(a.address))));
+    const yes = await ask(r, [el("h2", {}, "Sign in?"), el("div", { class: "site" }, r.origin),
+      el("p", { class: "mute" }, "This site will see your address and can ask you to sign publishing actions. It never sees your recovery words."), el("label", {}, "Account"), sel], "Sign in", () => true);
+    if (!yes) { reply(r, false, "Denied by user."); return render(); }
+    const a = v.accounts.find(x => x.address === sel.value);
+    S.grants.set(r.origin, { address: a.address, autoUntil: 0 });
+    reply(r, true, { address: a.address, publicKey: a.publicKey });
+    return render();
+  }
+  if (r.method === "logout") { S.grants.delete(r.origin); pending = null; reply(r, true, true); return render(); }
+  if (r.method === "sign") {
+    const g = S.grants.get(r.origin);
+    if (!g) { pending = null; reply(r, false, "Not signed in. Sign in again."); return render(); }
+    const v = loadVault(), acc = v.accounts.find(a => a.address === g.address);
+    const d = r.params && r.params.doc, bad = m => { pending = null; reply(r, false, m); render(); };
+    if (!acc) return bad("Account no longer in vault.");
+    if (!d || typeof d !== "object") return bad("No transaction to sign.");
+    const want = ["chain_id", "gas", "nonce", "payload", "public_key", "signer", "type", "version"];
+    if (Object.keys(d).sort().join() !== want.join()) return bad("Unexpected transaction fields.");
+    if (d.version !== 1 || typeof d.chain_id !== "string" || !Number.isSafeInteger(d.nonce)) return bad("Malformed transaction.");
+    if (d.signer !== acc.address || d.public_key !== acc.publicKey) return bad("Transaction is not for the signed-in account.");
+    if (!CONFIG.ALLOWED_TYPES.includes(d.type)) return bad("Transaction type " + d.type + " is not allowed.");
+    if (d.gas !== "0" && d.gas !== CONFIG.L1_FEE_ATOMIC) return bad("Unexpected fee.");
+    const text = goJSONStringify(d);
+    if (text.length > CONFIG.MAX_DOC_BYTES) return bad("Transaction is too large.");
+    const auto = Date.now() < g.autoUntil && CONFIG.AUTO_TYPES.includes(d.type);
+    if (!auto) {
+      const p = d.payload || {}, c = p.content, rows = [["Type", d.type], ["Fee", d.gas === "0" ? "none" : (Number(d.gas) / 1e8) + " (L1 fee)"]];
+      if (d.type === "STORE") rows.push(["Stores", (c && c.title ? '"' + c.title + '" · ' : "") + (c && c.kind ? c.kind + " · " : "") + text.length + " bytes"]);
+      if (d.type === "L2_POINTER") rows.push(["Action", String(p.action)], ["Points to", String(p.l2_tx_hash || "").slice(0, 16) + "…"]);
+      if (d.type === "REGISTER_WALLET") rows.push(["Effect", "Registers your wallet on L1"]);
+      if (d.type === "L2_FUND" || d.type === "STORAGE_FUND") {
+        rows.push(["Moves", "MONEY: " + String(p.amount) + " atomic units"], ["Into", String(p.l2_chain_id || "")]);
+        const h = r.params && typeof r.params.hint === "string" ? r.params.hint.slice(0, 120) : "";
+        if (h) rows.push(["Site says", h]);
+      }
+      const chk = el("input", { type: "checkbox" });
+      const yes = await ask(r, [el("h2", {}, "Approve this action?"), el("div", { class: "site" }, r.origin),
+        el("dl", {}, rows.flatMap(([k, val]) => [el("dt", {}, k), el("dd", {}, val)])),
+        el("label", { style: "display:flex;gap:8px;align-items:center;color:inherit;font-size:.88rem" }, chk, "Allow this site to publish for " + CONFIG.AUTO_MINUTES + " minutes without asking again")],
+        "Approve", () => (chk.checked ? "auto" : true));
+      if (!yes) { reply(r, false, "Denied by user."); return render(); }
+      if (yes === "auto") g.autoUntil = Date.now() + CONFIG.AUTO_MINUTES * 60000;
+    }
+    S.busy = true;
+    try {
+      const w = await getSigner(acc);
+      const sig = await crypto.subtle.sign({ name: "Ed25519" }, w.privateKey, enc.encode(text));
+      pending = null; reply(r, true, { signature: b64(sig) });
+    } catch (e) { pending = null; reply(r, false, "Signing failed: " + e.message); }
+    S.busy = false; touch();
+    return render();
+  }
+  pending = null; reply(r, false, "Unknown request."); render();
+}
+
+async function pump(){
+  if (working) return; working = true;
+  while (queue.length) { try { await handle(queue.shift()); } catch (e) { pending = null; console.error(e); } }
+  working = false; render();
+}
+
+addEventListener("message", e => {
+  if (!window.opener || e.source !== window.opener) return;
+  const d = e.data;
+  if (!d || d.cwcIdentity !== 1 || typeof d.method !== "string") return;
+  const r = { id: d.id, method: d.method, params: d.params, origin: e.origin, source: e.source };
+  if (!CONFIG.ALLOWED_ORIGINS.includes(e.origin)) {
+    reply(r, false, "Blocked: " + e.origin + " is not in ALLOWED_ORIGINS of identity.html. Add exactly that text to the list.");
+    noticeText = "Blocked a request from " + e.origin + ". If this is your publisher, add \"" + e.origin + "\" to ALLOWED_ORIGINS in identity.html.";
+    if (!pending) render();
+    return;
+  }
+  if (r.method === "hello") { reply(r, true, true); return; }
+  queue.push(r); pump();
+});
+
+/* tell the opener we are ready (carries no secrets) */
+if (window.opener) { try { window.opener.postMessage({ cwcIdentity: 1, type: "ready" }, "*"); } catch {} }
+render();
+</script>
+</body>
+</html>

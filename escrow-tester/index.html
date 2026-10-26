@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>chainWare Escrow Tester</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tweetnacl/1.0.3/nacl-fast.min.js"></script>
+<style>
+  :root{--bg:#f5f6f8;--card:#fff;--ink:#1c2230;--mute:#6b7385;--line:#dde1e8;--acc:#2f5bea;--ok:#157f3b;--err:#b3261e}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--mute);margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:16px;margin:0 0 10px}
+  .step{display:inline-block;background:var(--acc);color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;font-size:13px;line-height:22px;margin-right:6px}
+  label{display:block;font-size:12px;color:var(--mute);margin:8px 0 3px}
+  input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fff;color:var(--ink)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:150px}
+  button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer;margin-top:10px}
+  button.sec{background:#e8ebf2;color:var(--ink)}
+  button.sm{padding:3px 8px;margin:0 2px 0 0;font-size:12px}
+  button:disabled{opacity:.5}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--mute);font-weight:500}
+  code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  #log{background:#10141c;color:#d5dbe8;border-radius:8px;padding:10px;height:200px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+  .ok{color:#6ee09a}.err{color:#ff8a80}
+  .warn{background:#fff6e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:12px}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:4px 10px;font-size:14px}
+  .kv div:nth-child(odd){color:var(--mute)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;background:#e8ebf2;font-size:12px}
+  .pill.good{background:#d8f3e2;color:var(--ok)}
+  details{margin-top:10px}
+  pre{background:#f0f2f6;padding:10px;border-radius:6px;overflow:auto;font-size:12px;max-height:260px}
+  #conninfo{margin-top:8px;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+  <h1>chainWare Escrow Tester</h1>
+  <p class="sub">Tests the "any valid wallet" escrow: lock funds → N registered wallets report the condition is TRUE → funds release to the recipient automatically.</p>
+
+  <div class="warn"><b>Test keys only.</b> Wallet seeds are generated in this browser and stored in localStorage. Never import a real wallet seed here. Use a test chain.</div>
+
+  <!-- 1 CONNECT -->
+  <div class="card">
+    <h2><span class="step">1</span>Connect to Layer 1</h2>
+    <label>Validator RPC URL (L1)</label>
+    <input id="rpc" placeholder="https://your-validator.example.com/chainware-rpc">
+    <button id="btnConnect">Connect</button>
+    <div id="conninfo">Not connected.</div>
+  </div>
+
+  <!-- 2 WALLETS -->
+  <div class="card">
+    <h2><span class="step">2</span>Wallets</h2>
+    <p class="sub" style="margin:0 0 8px">Each wallet must be <b>registered</b> before it can bind a recipient or report a condition. Registration also pays the bootstrap reward (if any is left), which covers gas.</p>
+    <table>
+      <thead><tr><th>Name</th><th>Address</th><th>Balance</th><th>Reg.</th><th></th></tr></thead>
+      <tbody id="walletRows"></tbody>
+    </table>
+    <div class="row" style="align-items:flex-end">
+      <div style="max-width:200px"><label>New wallet name</label><input id="newName" value="Wallet"></div>
+      <div style="flex:0"><button id="btnNew" class="sec">Generate</button></div>
+      <div style="flex:0"><button id="btnRefresh" class="sec">Refresh balances</button></div>
+    </div>
+    <details>
+      <summary>Send funds between wallets</summary>
+      <div class="row">
+        <div><label>From</label><select id="xferFrom" class="walletSel"></select></div>
+        <div><label>To address</label><input id="xferTo" list="addrList" placeholder="cw..."></div>
+        <div><label>Amount (native)</label><input id="xferAmt" value="1"></div>
+      </div>
+      <button id="btnXfer" class="sec">Send</button>
+    </details>
+    <datalist id="addrList"></datalist>
+  </div>
+
+  <!-- 3 CREATE -->
+  <div class="card">
+    <h2><span class="step">3</span>Create escrow (locks funds)</h2>
+    <div class="row">
+      <div><label>Payor (signer)</label><select id="createFrom" class="walletSel"></select></div>
+      <div><label>Amount (native)</label><input id="createAmt" value="1"></div>
+      <div><label>Reports needed</label><input id="createReports" type="number" min="1" max="100" value="1"></div>
+    </div>
+    <div class="row">
+      <div><label>Title</label><input id="createTitle" value="Test escrow"></div>
+      <div><label>Recipient address (leave blank = unbound, someone binds later)</label><input id="createRecipient" list="addrList" placeholder="cw... or blank"></div>
+    </div>
+    <button id="btnCreate">Create escrow</button>
+  </div>
+
+  <!-- 4 ESCROW -->
+  <div class="card">
+    <h2><span class="step">4</span>Work with an escrow</h2>
+    <label>Escrow ID (auto-filled after create; or paste an existing one)</label>
+    <input id="escrowId" class="mono" placeholder="64-char hash or cwsc:...">
+    <div class="row">
+      <div style="flex:0"><button id="btnLoad" class="sec">Load / refresh</button></div>
+      <div style="flex:0"><button id="btnList" class="sec">List all contracts</button></div>
+    </div>
+
+    <h2 style="margin-top:16px">Bind recipient <span class="pill">only if created unbound</span></h2>
+    <div class="row" style="align-items:flex-end">
+      <div><label>Signer (becomes the recipient)</label><select id="bindFrom" class="walletSel"></select></div>
+      <div style="flex:0"><button id="btnBind">Bind</button></div>
+    </div>
+
+    <h2 style="margin-top:16px">Report condition = TRUE</h2>
+    <div class="row" style="align-items:flex-end">
+      <div><label>Reporter (signer)</label><select id="reportFrom" class="walletSel"></select></div>
+      <div><label>Evidence note (optional)</label><input id="reportEv" placeholder="e.g. delivered on 18 Oct"></div>
+      <div style="flex:0"><button id="btnReport">Report</button></div>
+    </div>
+
+    <div id="escrowView" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Log</h2>
+    <div id="log"></div>
+  </div>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const GAS_FEE = "400000000";           // 0.0004 native, required on every L1 tx except REGISTER_WALLET
+let conn = null;                        // {rpc, chainId, decimals, protocol, ...}
+let wallets = [];                       // {name, seed, pub, addr, bal, reg}
+
+/* ---------- small helpers ---------- */
+const toHex = u8 => [...u8].map(b => b.toString(16).padStart(2, "0")).join("");
+const fromHex = h => Uint8Array.from(h.match(/../g).map(x => parseInt(x, 16)));
+const b64 = u8 => { let s = ""; u8.forEach(b => s += String.fromCharCode(b)); return btoa(s); };
+const sha256 = async u8 => new Uint8Array(await crypto.subtle.digest("SHA-256", u8));
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const short = a => a && a.length > 16 ? a.slice(0, 8) + "…" + a.slice(-6) : (a || "");
+
+function log(msg, cls) {
+  const d = document.createElement("div");
+  if (cls) d.className = cls;
+  d.textContent = new Date().toLocaleTimeString() + "  " + msg;
+  $("log").appendChild(d);
+  $("log").scrollTop = $("log").scrollHeight;
+}
+async function act(label, fn) {
+  try { log("▶ " + label); await fn(); }
+  catch (e) { log("✗ " + (e.message || e), "err"); }
+}
+
+const decimals = () => (conn && conn.decimals) || 12;
+function toBase(text) {
+  const [w, f = ""] = String(text).trim().split(".");
+  if (!/^\d+$/.test(w || "0") || !/^\d*$/.test(f)) throw new Error("Invalid amount");
+  if (f.length > decimals()) throw new Error("Too many decimals (max " + decimals() + ")");
+  return (BigInt(w || "0") * 10n ** BigInt(decimals()) + BigInt(f.padEnd(decimals(), "0") || "0")).toString();
+}
+function fmt(v) {
+  try {
+    const d = decimals(), n = BigInt(v), base = 10n ** BigInt(d);
+    const f = (n % base).toString().padStart(d, "0").replace(/0+$/, "");
+    return (n / base) + (f ? "." + f : "");
+  } catch { return String(v ?? "?"); }
+}
+
+/* ---------- canonical JSON that matches the Go node (sorted keys, Go-style HTML escaping) ---------- */
+function gostr(s) {
+  return JSON.stringify(s).replace(/[<>&\u2028\u2029]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
+}
+function canon(v) {
+  if (v === null) return "null";
+  if (Array.isArray(v)) return "[" + v.map(canon).join(",") + "]";
+  if (typeof v === "object") return "{" + Object.keys(v).sort().map(k => gostr(k) + ":" + canon(v[k])).join(",") + "}";
+  if (typeof v === "string") return gostr(v);
+  return JSON.stringify(v);
+}
+
+/* ---------- RPC ---------- */
+async function rpc(method, params = {}) {
+  if (!conn || !conn.rpc) throw new Error("Connect first");
+  const r = await fetch(conn.rpc, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: Date.now(), method, params })
+  });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const d = await r.json();
+  if (d.error) throw new Error((d.error.message || "RPC error") + (d.error.data ? ": " + d.error.data : ""));
+  return d.result;
+}
+async function query(path) {
+  const r = await rpc("abci_query", { path, data: "", prove: false });
+  const resp = r.response || {};
+  if (Number(resp.code || 0) !== 0) throw new Error(resp.log || "Query failed: " + path);
+  if (!resp.value) return null;
+  const bytes = Uint8Array.from(atob(resp.value), c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+/* ---------- wallets ---------- */
+async function makeWallet(name, seedHex) {
+  const seed = seedHex ? fromHex(seedHex) : crypto.getRandomValues(new Uint8Array(32));
+  const kp = nacl.sign.keyPair.fromSeed(seed);
+  const addr = "cw" + toHex((await sha256(kp.publicKey)).slice(0, 20));
+  return { name, seed: toHex(seed), pub: b64(kp.publicKey), addr, bal: "?", reg: "?" };
+}
+function saveWallets() {
+  try { localStorage.setItem("cw-test-wallets", JSON.stringify(wallets.map(w => ({ name: w.name, seed: w.seed })))); } catch {}
+}
+async function loadWallets() {
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem("cw-test-wallets") || "[]"); } catch {}
+  for (const s of saved) wallets.push(await makeWallet(s.name, s.seed));
+  if (!wallets.length) {
+    for (const n of ["Payor", "Recipient", "Reporter"]) wallets.push(await makeWallet(n));
+    saveWallets();
+  }
+}
+const walletByAddr = a => wallets.find(w => w.addr === a);
+
+function renderWallets() {
+  $("walletRows").innerHTML = wallets.map((w, i) => `
+    <tr>
+      <td>${esc(w.name)}</td>
+      <td class="mono" title="${esc(w.addr)}">${esc(short(w.addr))}</td>
+      <td>${w.bal === "?" ? "?" : esc(fmt(w.bal))}</td>
+      <td>${w.reg === "yes" ? '<span class="pill good">yes</span>' : esc(w.reg)}</td>
+      <td>
+        <button class="sm" data-act="reg" data-i="${i}">Register</button>
+        <button class="sm sec" data-act="addr" data-i="${i}">Copy addr</button>
+        <button class="sm sec" data-act="del" data-i="${i}">✕</button>
+      </td>
+    </tr>`).join("");
+  const opts = wallets.map(w => `<option value="${esc(w.addr)}">${esc(w.name)} (${esc(short(w.addr))})</option>`).join("");
+  document.querySelectorAll(".walletSel").forEach(sel => {
+    const keep = sel.value; sel.innerHTML = opts; if (keep) sel.value = keep;
+  });
+  $("addrList").innerHTML = wallets.map(w => `<option value="${esc(w.addr)}">${esc(w.name)}</option>`).join("");
+  // sensible defaults
+  const pick = (id, name) => { const w = wallets.find(x => x.name === name); if (w && !$(id).dataset.set) { $(id).value = w.addr; $(id).dataset.set = "1"; } };
+  pick("createFrom", "Payor"); pick("bindFrom", "Recipient"); pick("reportFrom", "Reporter");
+}
+async function refreshWallets() {
+  if (conn) {
+    for (const w of wallets) {
+      try {
+        const a = await query("/account/" + w.addr); w.bal = a.balance;
+        const r = await query("/wallet-registration/" + w.addr); w.reg = r && r.registered === false ? "no" : "yes";
+      } catch { /* keep old */ }
+    }
+  }
+  renderWallets();
+}
+
+/* ---------- signing + broadcasting ---------- */
+async function sendTx(signerAddr, type, payload, gas = GAS_FEE) {
+  if (!conn || !conn.chainId) throw new Error("Connect first");
+  const w = walletByAddr(signerAddr);
+  if (!w) throw new Error("Pick a signer wallet");
+  const acct = await query("/account/" + w.addr);
+  const nonce = Number((acct && acct.nonce) || 0) + 1;
+  const pc = canon(payload);
+  // Signing document: field order must match the Go struct exactly.
+  const doc = '{"version":1,"chain_id":' + gostr(conn.chainId) + ',"type":' + gostr(type) + ',"gas":' + gostr(gas) +
+    ',"signer":' + gostr(w.addr) + ',"nonce":' + nonce + ',"payload":' + pc + ',"public_key":' + gostr(w.pub) + "}";
+  const kp = nacl.sign.keyPair.fromSeed(fromHex(w.seed));
+  const sig = b64(nacl.sign.detached(new TextEncoder().encode(doc), kp.secretKey));
+  const txStr = '{"version":1,"chain_id":' + gostr(conn.chainId) + ',"type":' + gostr(type) + ',"gas":' + gostr(gas) +
+    ',"nonce":' + nonce + ',"signer":' + gostr(w.addr) + ',"payload":' + pc + ',"public_key":' + gostr(w.pub) +
+    ',"signature":' + gostr(sig) + "}";
+  const bytes = new TextEncoder().encode(txStr);
+  const txHash = toHex(await sha256(bytes));   // for ESCROW this hash IS the escrow ID
+  const res = await rpc("broadcast_tx_commit", { tx: b64(bytes) });
+  const chk = res.check_tx || {}, dlv = res.tx_result || res.deliver_tx || {};
+  if (Number(chk.code || 0)) throw new Error("Rejected at CheckTx: " + (chk.log || chk.code));
+  if (Number(dlv.code || 0)) throw new Error("Failed in block: " + (dlv.log || dlv.code));
+  log("✓ " + type + " committed at height " + res.height + " · tx " + txHash.slice(0, 16) + "…", "ok");
+  return { hash: txHash, height: res.height };
+}
+
+/* ---------- actions ---------- */
+async function connect() {
+  const url = $("rpc").value.trim().replace(/\/+$/, "");
+  if (!url) throw new Error("Enter the RPC URL");
+  conn = { rpc: url };
+  try { localStorage.setItem("cw-test-rpc", url); } catch {}
+  const [st, state, cap] = await Promise.all([rpc("status"), query("/state"), query("/capabilities")]);
+  if (state.Layer !== "layer-1") { conn = null; throw new Error("This endpoint is " + state.Layer + ". Escrow lives on layer-1."); }
+  conn = { rpc: url, chainId: state.ChainID, decimals: state.Decimals || 12, protocol: cap.ProtocolVersion, denom: state.Denomination || "native" };
+  $("conninfo").innerHTML = `Connected · chain <b>${esc(state.ChainID)}</b> · height ${esc(st.sync_info.latest_block_height)} · protocol v${esc(cap.ProtocolVersion)} · ${esc(state.Decimals)} decimals`;
+  log("Connected to " + state.ChainID + " (protocol v" + cap.ProtocolVersion + ")", "ok");
+  if (cap.ProtocolVersion < 9) log("⚠ Protocol < 9: any-wallet escrow is not available on this chain.", "err");
+  else if (cap.ProtocolVersion < 11) log("⚠ Protocol < 11: unbound recipients are not available; enter a recipient address.", "err");
+  await refreshWallets();
+}
+
+async function createEscrow() {
+  const from = $("createFrom").value;
+  const recipient = $("createRecipient").value.trim();
+  const reports = parseInt($("createReports").value, 10);
+  if (!(reports >= 1 && reports <= 100)) throw new Error("Reports needed must be 1..100");
+  const unbound = recipient === "";
+  if (!unbound && !/^cw[0-9a-f]{40}$/.test(recipient)) throw new Error("Recipient must be a cw… address (40 hex chars) or blank");
+  const payload = {
+    contract_schema: "chainware:generic-escrow:v1",
+    contract_version: 1,
+    l2_reference: "chainware:generic-escrow:v1",
+    title: $("createTitle").value.trim() || "Test escrow",
+    purpose: "Created from the escrow tester page",
+    amount: toBase($("createAmt").value),
+    proposal_binding: { mode: "UNBOUND_AT_CREATION" },
+    branches: {
+      APPROVED: { action: "RELEASE_TO_APPROVED_RECIPIENT", destination: unbound ? "BOUND_RECIPIENT" : recipient },
+      NOT_APPROVED: { action: "REFUND_TO_PAYOR", destination: "IMMUTABLE_PAYOR" },
+      TIMEOUT: { enabled: false }
+    },
+    consensus: { mode: "ANY_VALID_WALLET", required_reports: reports },
+    condition: { type: "MANUAL_TEST", id: "main", description: "Condition reported TRUE by registered wallets" },
+    execution: { authorization: "CONDITION_REPORT_THRESHOLD", validator_must_derive_amount_and_destination_from_escrow: true, replay_protected: true }
+  };
+  if (unbound) payload.recipient_binding = { mode: "UNBOUND_AT_CREATION" };
+  else payload.approved_recipient = recipient;
+  const r = await sendTx(from, "ESCROW", payload);
+  $("escrowId").value = r.hash;
+  log("Escrow ID: " + r.hash);
+  await Promise.all([refreshWallets(), loadEscrow()]);
+}
+
+function currentId() {
+  const v = $("escrowId").value.trim();
+  if (!v) throw new Error("Enter or create an escrow ID first");
+  return v.replace(/^cwsc:/i, "").toLowerCase();
+}
+
+async function bindRecipient() {
+  const id = currentId();
+  await sendTx($("bindFrom").value, "ESCROW_RECIPIENT_BIND", { escrow_id: id });
+  await Promise.all([refreshWallets(), loadEscrow()]);
+}
+
+async function reportCondition() {
+  const id = currentId();
+  const payload = { escrow_id: id, result: "TRUE" };
+  const ev = $("reportEv").value.trim();
+  if (ev) payload.evidence_ref = ev;
+  await sendTx($("reportFrom").value, "ESCROW_CONDITION_REPORT", payload);
+  await Promise.all([refreshWallets(), loadEscrow()]);
+}
+
+async function loadEscrow() {
+  const id = currentId();
+  const [e, c] = await Promise.all([query("/escrow/" + id), query("/contract/" + id).catch(() => null)]);
+  let payload = {}; try { payload = typeof e.payload === "string" ? JSON.parse(e.payload) : (e.payload || {}); } catch {}
+  const name = a => { const w = walletByAddr(a); return a ? (w ? w.name + " · " : "") + short(a) : "—"; };
+  const recipient = e.bound_recipient || payload.approved_recipient || "";
+  const cons = (c && c.consensus) || {};
+  const reporters = Object.keys(e.condition_reports || {});
+  const done = !["FUNDED_LOCKED", "OPEN"].includes(e.status);
+  $("escrowView").innerHTML = `
+    <div class="kv">
+      <div>Status</div><div><span class="pill ${done ? "good" : ""}">${esc(e.status)}</span></div>
+      <div>Title</div><div>${esc(payload.title || "")}</div>
+      <div>Amount</div><div>${esc(fmt(e.amount))} ${esc(e.asset || "")}</div>
+      <div>Still locked</div><div>${esc(fmt(e.balance))}</div>
+      <div>Payor</div><div>${esc(name(e.payor))}</div>
+      <div>Recipient</div><div>${recipient ? esc(name(recipient)) : "<i>not bound yet — use “Bind recipient”</i>"}</div>
+      <div>Reports</div><div>${esc(cons.true_reports ?? reporters.length)} / ${esc(cons.required_reports ?? "?")} ${reporters.length ? "(" + esc(reporters.map(name).join(", ")) + ")" : ""}</div>
+      <div>Outcome</div><div>${esc(e.execution_action || "—")} ${e.execution_height ? "at height " + esc(e.execution_height) : ""}</div>
+    </div>
+    <details><summary>Raw escrow JSON</summary><pre>${esc(JSON.stringify(e, null, 2))}</pre></details>`;
+  log("Loaded escrow " + id.slice(0, 12) + "… status " + e.status);
+}
+
+async function listContracts() {
+  const items = await query("/contracts/all");
+  log("Contracts on chain: " + (items ? items.length : 0));
+  (items || []).slice(0, 15).forEach(c => log("  " + c.escrow_id + "  " + c.status + "  " + fmt(c.amount) + "  " + (c.title || "")));
+}
+
+async function register(i) {
+  await sendTx(wallets[i].addr, "REGISTER_WALLET", {}, "0");
+  await refreshWallets();
+}
+async function transfer() {
+  const to = $("xferTo").value.trim();
+  await sendTx($("xferFrom").value, "TRANSFER", { to, amount: toBase($("xferAmt").value) });
+  await refreshWallets();
+}
+
+/* ---------- wire up ---------- */
+$("btnConnect").onclick = () => act("Connect", connect);
+$("btnRefresh").onclick = () => act("Refresh balances", refreshWallets);
+$("btnNew").onclick = () => act("New wallet", async () => {
+  wallets.push(await makeWallet($("newName").value.trim() || "Wallet")); saveWallets(); renderWallets();
+});
+$("btnCreate").onclick = () => act("Create escrow", createEscrow);
+$("btnBind").onclick = () => act("Bind recipient", bindRecipient);
+$("btnReport").onclick = () => act("Report condition", reportCondition);
+$("btnLoad").onclick = () => act("Load escrow", loadEscrow);
+$("btnList").onclick = () => act("List contracts", listContracts);
+$("btnXfer").onclick = () => act("Transfer", transfer);
+$("walletRows").onclick = ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  const i = +b.dataset.i;
+  if (b.dataset.act === "reg") act("Register " + wallets[i].name, () => register(i));
+  if (b.dataset.act === "addr") navigator.clipboard.writeText(wallets[i].addr).then(() => log("Address copied"));
+  if (b.dataset.act === "del" && confirm("Remove " + wallets[i].name + "? Its seed will be lost.")) {
+    wallets.splice(i, 1); saveWallets(); renderWallets();
+  }
+};
+
+(async () => {
+  try { $("rpc").value = localStorage.getItem("cw-test-rpc") || ""; } catch {}
+  await loadWallets();
+  renderWallets();
+  log("Ready. Connect to a validator, register the wallets, then create an escrow.");
+})();
+</script>
+</body>
+</html>

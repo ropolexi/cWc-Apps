@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>chainWare Escrow Visualizer</title>
+<style>
+:root{
+  --bg:#060a12;--panel:rgba(12,18,30,.84);--panel2:#0c121e;--ink:#f1f5f9;--mute:#94a3b8;--dim:#64748b;--line:rgba(255,255,255,.08);
+  --cyan:#22d3ee;--blue:#3b82f6;--green:#34d399;--amber:#fbbf24;--red:#f87171;--rose:#fb7185;--purple:#c084fc;--teal:#2dd4bf;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:14px/1.45 "Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);min-height:100vh;
+  background:radial-gradient(circle at 15% 0,#161b2e 0,transparent 40%),radial-gradient(circle at 85% 10%,#1a1528 0,transparent 35%),var(--bg)}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid #1e293b;background:#0f1524;border-radius:12px;padding:8px 14px;font-weight:600;font-size:12px;transition:.15s}
+button:hover{background:#1a2236}
+button:active{transform:translateY(1px)}
+button.on{background:linear-gradient(90deg,#06b6d4,#3b82f6);color:#06101c;border-color:#22d3ee;font-weight:800}
+input{background:#0b1120;border:1px solid #1e293b;border-radius:12px;padding:8px 12px;font-size:12px;outline:none}
+input:focus{border-color:var(--cyan)}
+header{position:sticky;top:0;z-index:40;background:rgba(6,10,18,.88);backdrop-filter:blur(14px);border-bottom:1px solid #1e293b}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:14px;height:72px;flex-wrap:wrap}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#06b6d4,#2563eb,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 8px 24px rgba(6,182,212,.25)}
+h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.01em}
+.tag{font-size:10px;padding:2px 9px;border-radius:99px;background:rgba(34,211,238,.12);color:#67e8f9;border:1px solid rgba(34,211,238,.3);font-weight:700;text-transform:uppercase}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.glass{background:var(--panel);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.glass:hover{border-color:rgba(34,211,238,.25)}
+main{padding:24px 0 60px;display:grid;gap:22px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block}
+.dot.live{animation:ping 1.6s infinite}
+.dot.bad{background:var(--red);animation:none}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(52,211,153,.6)}100%{box-shadow:0 0 0 10px rgba(52,211,153,0)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 8px rgba(34,211,238,.35))}50%{filter:drop-shadow(0 0 20px rgba(34,211,238,.75))}}
+@keyframes blink{50%{opacity:.45}}
+.bar{padding:14px 18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.h{font-size:18px;font-weight:800;color:var(--cyan);padding:3px 12px;border-radius:12px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3)}
+.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.cats button{white-space:nowrap;border-radius:16px;padding:8px 14px}
+.cats .n{background:#060a12;border-radius:99px;padding:1px 7px;font-size:10px;color:var(--mute);margin-left:6px}
+.cats button.on .n{background:rgba(6,16,28,.25);color:#06101c}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.stat{padding:18px;cursor:pointer}
+.stat .l{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.stat .v{font-size:24px;font-weight:800;margin-top:12px;word-break:break-word}
+.stat .s{font-size:11px;color:var(--mute);margin-top:4px}
+.meter{height:6px;border-radius:99px;background:#1e293b;margin-top:12px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+.card{padding:18px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;transition:.15s}
+.card.sel{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,211,238,.3)}
+.card.urgent::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#ef4444,#f59e0b);animation:blink 1s infinite}
+.card h3{margin:0;font-size:14px;font-weight:700}
+.card:hover h3{color:#67e8f9}
+.sub{font-size:11px;color:var(--mute)}
+.amt{padding:4px 11px;border-radius:12px;background:#0f1524;border:1px solid #334155;color:#67e8f9;font-weight:800;font-size:12px;white-space:nowrap}
+.flow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin:12px 0;border-radius:16px;background:rgba(6,10,18,.7);border:1px solid rgba(30,41,59,.8)}
+.flow small{display:block;font-size:9px;color:var(--dim);font-weight:700;text-transform:uppercase}
+.flow b{font-size:12px}
+.badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:7px;border:1px solid;white-space:nowrap}
+.c-contracts{color:#67e8f9;background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.3)}
+.c-governance{color:#d8b4fe;background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.3)}
+.c-treasury{color:#6ee7b7;background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3)}
+.c-storage{color:#fcd34d;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3)}
+.c-bootstrap{color:#5eead4;background:rgba(45,212,191,.12);border-color:rgba(45,212,191,.3)}
+.c-gas{color:#fda4af;background:rgba(251,113,133,.12);border-color:rgba(251,113,133,.3)}
+.pb{height:8px;border-radius:99px;background:#060a12;border:1px solid #1e293b;overflow:hidden;margin-top:4px}
+.pb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#10b981,#2dd4bf)}
+.pb.warn i{background:linear-gradient(90deg,#ef4444,#f59e0b);animation:blink 1s infinite}
+.pb.done i{background:linear-gradient(90deg,#e11d48,#ef4444)}
+.pb.blue i{background:linear-gradient(90deg,#06b6d4,#3b82f6)}
+.sep{border-top:1px solid #1e293b;margin-top:12px;padding-top:10px}
+.between{display:flex;justify-content:space-between;gap:8px;font-size:11px}
+.good{color:var(--green)}.bad{color:var(--red)}.warnc{color:var(--amber)}.cy{color:var(--cyan)}
+.steps{display:flex;margin:10px 0 2px}
+.steps .s{flex:1;text-align:center;font-size:10px;color:var(--dim);position:relative}
+.steps .s::before{content:"";display:block;width:14px;height:14px;border-radius:50%;background:#1e293b;border:2px solid #334155;margin:0 auto 3px;position:relative;z-index:1}
+.steps .s::after{content:"";position:absolute;top:7px;left:-50%;width:100%;height:2px;background:#334155}
+.steps .s:first-child::after{display:none}
+.steps .s.done{color:var(--ink)}
+.steps .s.done::before{background:var(--green);border-color:var(--green)}
+.steps .s.done::after{background:var(--green)}
+.steps .s.cur::before{background:var(--amber);border-color:var(--amber);animation:blink 1.2s infinite}
+.toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
+.seg{display:flex;gap:4px;padding:4px;border-radius:16px;background:#0b1120;border:1px solid #1e293b}
+.seg button{border:0;background:transparent;border-radius:12px;color:var(--mute)}
+.seg button.on{background:#1e293b;color:#fff}
+.panel{padding:22px}
+.conduit{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:16px;align-items:stretch;padding:20px;border-radius:20px;background:rgba(6,10,18,.8);border:1px solid #1e293b;margin:14px 0}
+@media(max-width:820px){.conduit{grid-template-columns:1fr}}
+.node{padding:16px;border-radius:18px;background:rgba(15,21,36,.85);border:1px solid #1e293b;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.node.vault{border-color:rgba(34,211,238,.35)}
+.node .lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.ico{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(59,130,246,.3));border:1px solid rgba(34,211,238,.4)}
+.ico.vault{background:linear-gradient(135deg,#06b6d4,#2563eb,#4f46e5);animation:glow 3s infinite}
+.branch{padding:12px;border-radius:14px;border:1px solid #1e293b;background:rgba(15,21,36,.5);opacity:.55;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.branch.hit{opacity:1;box-shadow:0 0 0 1px currentColor}
+.branch.green{color:var(--green);background:rgba(52,211,153,.12)}
+.branch.red{color:var(--red);background:rgba(248,113,113,.12)}
+.branch.amber{color:var(--amber);background:rgba(251,191,36,.12)}
+.branch b{color:var(--ink);font-size:12px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.box{padding:16px;border-radius:18px;background:rgba(6,10,18,.6);border:1px solid #1e293b}
+h4{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--mute)}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:12px}
+.kv .k{color:var(--dim)}.kv .v{word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #1e293b;vertical-align:top}
+th{color:var(--dim)}
+pre.rawpre{max-height:70vh;white-space:pre;user-select:text}
+pre{margin:0;max-height:280px;overflow:auto;font-size:11px;background:#060a12;padding:10px;border-radius:12px;border:1px solid #1e293b}
+details summary{cursor:pointer;color:var(--mute);font-size:12px}
+.empty{padding:40px;text-align:center;color:var(--mute);border-radius:24px}
+.modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(6,10,18,.85);backdrop-filter:blur(8px)}
+.modal.open{display:flex}
+.mbox{width:100%;max-width:560px;max-height:85vh;overflow:auto;background:#0c121e;border:1px solid #1e293b;border-radius:24px;padding:22px}
+.err{display:none;padding:12px 16px;border-radius:14px;background:rgba(127,29,29,.35);border:1px solid rgba(248,113,113,.4);color:#fecaca;font-size:12px;white-space:pre-wrap}
+.hidden{display:none!important}
+svg text{fill:var(--ink);font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:99px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hd">
+    <div class="row" style="gap:12px">
+      <div class="logo">🔒</div>
+      <div>
+        <div class="row" style="gap:8px"><h1>chainWare Escrow Visualizer</h1><span class="tag">Live on-chain</span></div>
+        <div class="sub">Contracts · Governance · Treasury · Storage · Bootstrap · Gas</div>
+      </div>
+    </div>
+    <div class="seg" id="views">
+      <button data-v="grid" class="on">❖ Cards</button>
+      <button data-v="pipeline">⚡ Pipeline &amp; Detail</button>
+      <button data-v="timeout">⏳ Timeout Radar</button>
+    </div>
+    <div class="row">
+      <button id="btnRpc"><span class="dot live" id="nodeDot"></span> <span class="mono" id="hostLbl">node</span></button>
+      <button id="btnUsers">👥 Users</button>
+      <button id="btnReload">🔄 Reload</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="err" id="err"></div>
+
+  <div class="glass bar">
+    <div class="row" style="gap:14px">
+      <div class="row" style="gap:8px;padding:6px 12px;border-radius:14px;background:#060a12;border:1px solid #1e293b">
+        <span class="dot live" id="liveDot"></span><b id="netLbl" style="font-size:12px;text-transform:uppercase">—</b><span class="tag">CometBFT</span>
+      </div>
+      <span class="sub" style="font-weight:800;text-transform:uppercase;letter-spacing:.06em">Height</span>
+      <span class="h mono" id="heightLbl">#—</span>
+      <span class="sub mono" id="statusMsg">Connecting…</span>
+    </div>
+    <div class="row">
+      <button id="btnPoll">⏸ Polling (4 s)</button>
+      <button id="btnSync" style="color:#67e8f9;border-color:rgba(34,211,238,.4)">⚡ Sync</button>
+    </div>
+  </div>
+
+  <div class="cats" id="cats"></div>
+  <div class="stats" id="stats"></div>
+
+  <section id="vGrid" style="display:grid;gap:18px">
+    <div class="toolbar">
+      <div class="seg" id="filters">
+        <button data-f="all" class="on">All</button><button data-f="pending">🔒 Active</button><button data-f="settled">✓ Settled</button><button data-f="refunded">↩ Refunded</button><button data-f="urgent">⏳ Near timeout</button>
+      </div>
+      <div class="row">
+        <input id="q" placeholder="Search title, @user, ID…" style="width:260px">
+        <span class="sub" id="counter"></span>
+      </div>
+    </div>
+    <div class="grid" id="cards"></div>
+  </section>
+
+  <section id="vPipe" class="hidden"></section>
+  <section id="vTime" class="hidden" style="display:none;gap:18px"></section>
+</main>
+
+<div class="modal" id="mRpc"><div class="mbox">
+  <div class="between" style="margin-bottom:12px"><b>Validator RPC</b><button data-close="mRpc">✕</button></div>
+  <label class="sub">Layer 1 host or full RPC URL</label>
+  <input id="rpcIn" style="width:100%;margin:6px 0 10px" class="mono">
+  <label class="sub">Layer 2 host or RPC URL (for profile names; blank = auto, l1- → l2-)</label>
+  <input id="rpcL2In" style="width:100%;margin:6px 0 10px" class="mono" placeholder="l1-12-2.diamondthumb.com">
+  <div class="sub" style="margin-bottom:12px">Host → <code>https://&lt;host&gt;/chainware-rpc</code>. A full URL (e.g. <code>http://127.0.0.1:26657</code>) is used as is. You can also pass <code>?api=host</code> in the page URL.</div>
+  <div class="row" style="justify-content:flex-end"><button data-close="mRpc">Cancel</button><button class="on" id="rpcSave">Save &amp; connect</button></div>
+</div></div>
+
+<div class="modal" id="mUsers"><div class="mbox" style="max-width:680px">
+  <div class="between" style="margin-bottom:12px"><b>Account directory</b><button data-close="mUsers">✕</button></div>
+  <div id="userList" style="display:grid;gap:8px"></div>
+</div></div>
+
+<script>
+"use strict";
+/* ============================ helpers ============================ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const short = (s, n = 7) => !s ? "—" : (String(s).length > n * 2 + 2 ? String(s).slice(0, n) + "…" + String(s).slice(-n) : String(s));
+const lsGet = k => { try { return localStorage.getItem(k) } catch { return null } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v) } catch {} };
+
+/* ============================ config / state ============================ */
+const qp = new URLSearchParams(location.search).get("api");
+let rpcInput = qp || lsGet("cw_rpc") || "l1-12-2.diamondthumb.com";
+const toBase = v => { v = v.trim(); return /^https?:\/\//i.test(v) ? v.replace(/\/+$/, "") : "https://" + v.replace(/\/.*$/, "") + "/chainware-rpc"; };
+
+const S = { items: [], cat: "all", filter: "all", view: "grid", q: "", sel: null, height: 0, dec: 12, denom: "cWc", polling: true, timer: null, busy: false, users: {} };
+const CATS = [
+  ["all", "❖ All"], ["contracts", "📜 Contracts"], ["governance", "⚖️ Governance"], ["treasury", "🏛️ Treasury"],
+  ["storage", "💾 Storage"], ["bootstrap", "🪙 Bootstrap"], ["gas", "⛽ Gas"]
+];
+const CAT_BADGE = { contracts: "📜 CONTRACT", governance: "⚖️ GOVERNANCE", treasury: "🏛️ TREASURY", storage: "💾 STORAGE", bootstrap: "🪙 BOOTSTRAP", gas: "⛽ GAS" };
+
+const PENDING = ["FUNDED_LOCKED", "OPEN", "THRESHOLD_MET", "WAKE_ELECTION", "AWAITING_POST", "VOTING", "APPROVED_WAITING_DRIP", "FUNDED_LOCKED_BY_RDAO", "AVAILABLE", "LOCKED_PENDING_L2_PROOF", "LOCKED_FOR_L2_CREDIT"];
+const SETTLED = ["RELEASED_TO_APPROVED_RECIPIENT", "EXECUTED"];
+const REFUNDED = ["REFUNDED_TO_PAYOR", "REFUNDED_TIMEOUT_TO_PAYOR", "REJECTED"];
+const isPending = e => PENDING.includes(e.status);
+const isSettled = e => SETTLED.includes(e.status);
+const isRefunded = e => REFUNDED.includes(e.status);
+const isTimedOut = e => e.status === "REFUNDED_TIMEOUT_TO_PAYOR" || e.execAction === "TIMEOUT";
+const remaining = e => e.timeout.enabled ? Math.max(0, e.timeout.at - S.height) : null;
+const isUrgent = e => isPending(e) && e.timeout.enabled && remaining(e) <= 50;
+
+/* ============================ amounts ============================ */
+function fmt(atomic, withDenom = true) {
+  try {
+    const d = BigInt(S.dec), a = BigInt(atomic || "0"), base = 10n ** d;
+    const frac = (a % base).toString().padStart(Number(d), "0").replace(/0+$/, "");
+    return (a / base).toLocaleString("en-US") + (frac ? "." + frac.slice(0, 6) : "") + (withDenom ? " " + S.denom : "");
+  } catch { return esc(atomic); }
+}
+const big = a => { try { return BigInt(a || "0") } catch { return 0n } };
+
+/* ============================ RPC ============================ */
+async function rpc(method, params = {}, base = toBase(rpcInput)) {
+  const r = await fetch(base + "/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: Date.now(), method, params }) });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || "RPC error");
+  return j.result;
+}
+async function abci(path, base) {
+  const res = await rpc("abci_query", { path, data: "", prove: false }, base);
+  const x = res && res.response;
+  if (!x || Number(x.code || 0) !== 0) throw new Error((x && x.log) || "query failed: " + path);
+  if (!x.value) return null;
+  const bin = atob(x.value), arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder().decode(arr));
+}
+const objVals = v => Array.isArray(v) ? v : Object.values(v || {});
+
+/* ============================ load ============================ */
+async function load(notice) {
+  if (S.busy) return; S.busy = true;
+  if (notice) $("statusMsg").textContent = "Syncing…";
+  try {
+    const [status, state, contracts, escrowsRaw, tProps, tEsc, tMain, gas, boot, fundings, signals] = await Promise.all([
+      rpc("status").catch(() => null),
+      abci("/state").catch(() => null),
+      abci("/contracts").catch(() => null),
+      abci("/escrows").catch(() => ({})),
+      abci("/treasury-proposals").catch(() => []),
+      abci("/treasury-escrows").catch(() => []),
+      abci("/treasury").catch(() => null),
+      abci("/gas-treasury").catch(() => null),
+      abci("/bootstrap-budget").catch(() => null),
+      abci("/storage-fundings").catch(() => ({})),
+      abci("/signals").catch(() => [])
+    ]);
+    if (!status && !state) throw new Error("Node did not answer. Check the RPC host and CORS.");
+    if (state) { S.dec = Number(state.Decimals) || S.dec; S.denom = state.Denomination || S.denom; }
+    const h = Number(status?.sync_info?.latest_block_height || state?.Height || 0);
+    if (h) S.height = h;
+    $("heightLbl").textContent = "#" + S.height.toLocaleString();
+    if (status?.node_info?.network) $("netLbl").textContent = status.node_info.network;
+
+    const items = [];
+    const raw = escrowsRaw || {};
+    const props = {};   // proposal signals: hash -> {height, dur}
+    for (const s of objVals(signals)) {
+      const d = s && (s.data || s.Data);
+      if (d && d.kind === "proposal") props[String(s.hash || s.Hash || "").toUpperCase()] = { height: Number(s.height || s.Height || 0), dur: Number(d.duration_blocks || 0) };
+    }
+
+    /* 1 — generic escrow contracts (rich /contracts view merged with raw /escrows) */
+    for (const c of (Array.isArray(contracts) ? contracts : [])) {
+      const r = raw[c.escrow_id] || {};
+      const branches = c.branches || {}, tb = branches.TIMEOUT || {};
+      const destApproved = (branches.APPROVED || {}).destination || "";
+      const recipient = r.bound_recipient || (/^cw[0-9a-f]{40}$/.test(destApproved) ? destApproved : "");
+      let payload = r.payload;
+      if (typeof payload === "string") { try { payload = JSON.parse(payload); } catch { payload = {}; } }
+      payload = payload || {};
+      const created = Number(c.created_height || 0), bindH = Number(r.proposal_bind_height || 0);
+      const tBlocks = Number(tb.after_blocks || 0);
+      const deadlines = [];
+      if (tb.enabled && tBlocks) {
+        const bound = !!(c.proposal_id && bindH);
+        deadlines.push({ label: "Timeout refund to payor", blocks: tBlocks, at: (bound ? bindH : created) + tBlocks,
+          basis: bound ? `proposal bind block #${bindH} + ${tBlocks}` : `creation block #${created} + ${tBlocks} (indicative: the chain enforces timeout only for proposal-bound escrows)` });
+      }
+      const prop = c.proposal_id ? props[String(c.proposal_id).toUpperCase()] : null;
+      if (prop && prop.dur) deadlines.push({ label: "Proposal voting closes", blocks: prop.dur, at: prop.height + prop.dur, basis: `proposal signal block #${prop.height} + ${prop.dur}` });
+      const pp = payload.paid_post;
+      if (pp && Number(pp.duration_blocks) > 0) deadlines.push({ label: "Paid-post window", blocks: Number(pp.duration_blocks), at: created + Number(pp.duration_blocks), basis: `creation block #${created} + ${pp.duration_blocks}` });
+      const primary = deadlines.length ? { enabled: true, blocks: deadlines[0].blocks, at: deadlines[0].at, basis: deadlines[0].label + " · " + deadlines[0].basis } : { enabled: false };
+      const noDeadline = deadlines.length ? "" : (!tb.enabled ? "branches.TIMEOUT.enabled is false for this contract" : "timeout has no block count") + (c.proposal_id && !prop ? "; the bound proposal signal was not found in /signals" : "");
+      items.push({
+        id: c.escrow_id, cat: "contracts", title: c.title || "Contract " + c.escrow_id.slice(0, 8), purpose: c.purpose || "Generic escrow contract",
+        payor: c.payor, recipient, recipientHint: destApproved === "BOUND_RECIPIENT" ? "awaiting bind" : "",
+        amount: c.amount, balance: c.balance, status: c.status, created: Number(c.created_height || 0),
+        timeout: primary, deadlines, noDeadline,
+        execAction: (c.execution || {}).action, execHeight: Number((c.execution || {}).height || 0), contract: c, rawEscrow: r, raw: c
+      });
+    }
+
+    /* 2 — governance proposals */
+    for (const it of (Array.isArray(tProps) ? tProps : [])) {
+      const p = it.proposal || it; if (!p.id) continue;
+      const exec = p.status === "EXECUTED";
+      const created = Number(p.created_height || 0), close = Number(p.close_height || 0);
+      items.push({
+        id: "gov:" + p.id, cat: "governance", title: p.name || "Proposal " + p.id.slice(0, 8), purpose: p.purpose || "rDAO treasury proposal",
+        payor: "protocol:escrow:treasury", recipient: p.destination_escrow || "", amount: p.amount, balance: exec ? "0" : p.amount,
+        status: p.status || "VOTING", created, timeout: { enabled: !exec && p.status === "VOTING" && close > 0, blocks: close - created, at: close, basis: "voting close height" },
+        execAction: exec ? "EXECUTED" : "", execHeight: Number(p.executed_height || 0), gov: it, raw: it
+      });
+    }
+
+    /* 3 — treasury budget escrows */
+    for (const e of (Array.isArray(tEsc) ? tEsc : [])) {
+      items.push({
+        id: "tb:" + e.id, cat: "treasury", title: e.name || "Budget " + String(e.id).slice(0, 8), purpose: e.purpose || "Budget escrow approved by rDAO",
+        payor: "protocol:escrow:treasury", recipient: e.address || "", amount: e.amount, balance: e.amount, status: e.status || "FUNDED_LOCKED_BY_RDAO",
+        created: Number(e.created_height || 0), timeout: { enabled: false }, raw: e
+      });
+    }
+    if (tMain && tMain.account) items.push({
+      id: "protocol:escrow:treasury", cat: "treasury", title: "rDAO main treasury vault", purpose: (tMain.escrow_count || 0) + " sub-budgets allocated",
+      payor: "protocol:genesis", recipient: tMain.account, amount: tMain.supply || tMain.balance, balance: tMain.balance, status: "OPEN", created: 0, timeout: { enabled: false }, raw: tMain
+    });
+
+    /* 4 — gas */
+    if (gas && gas.account) items.push({
+      id: "protocol:escrow:gas", cat: "gas", title: "Gas fee vault", purpose: "Fee " + (gas.fee_native || "0.0004") + " " + S.denom + " per tx · governance >2/3 (" + (gas.governance_wallets || []).length + " wallets)",
+      payor: "protocol:gas_pool", recipient: gas.account, amount: gas.balance, balance: gas.balance, status: "OPEN", created: 0, timeout: { enabled: false }, raw: gas
+    });
+
+    /* 5 — bootstrap */
+    if (boot && boot.id) items.push({
+      id: boot.id, cat: "bootstrap", title: "Genesis bootstrap reward pool", purpose: (boot.rewarded_wallets || 0) + " of " + (boot.eligible_wallets || 0) + " wallets rewarded",
+      payor: "protocol:genesis", recipient: "protocol:escrow:bootstrap", amount: boot.remaining, balance: boot.remaining, status: "FUNDED_LOCKED", created: 0, timeout: { enabled: false }, raw: boot
+    });
+
+    /* 6 — storage fundings */
+    for (const f of objVals(fundings)) {
+      if (!f || !f.tx_hash) continue;
+      items.push({
+        id: "sf:" + f.tx_hash, cat: "storage", title: "Storage funding · " + (f.l2_chain_id || "L2"), purpose: "L1 collateral for storage credit on Layer 2",
+        payor: f.wallet, recipient: f.bridge_address || "protocol:escrow:storage:" + f.l2_chain_id + ":" + f.wallet, amount: f.amount, balance: f.amount,
+        status: f.status || "LOCKED_PENDING_L2_PROOF", created: Number(f.created_height || 0), timeout: { enabled: false }, raw: f
+      });
+    }
+
+    items.sort((a, b) => (isPending(b) - isPending(a)) || (b.created - a.created));
+    S.items = items;
+    if (!S.sel || !items.some(x => x.id === S.sel)) S.sel = items[0] ? items[0].id : null;
+
+    showErr("");
+    $("nodeDot").className = "dot live"; $("liveDot").className = "dot live";
+    $("statusMsg").textContent = `Synced · ${items.length} vaults · block #${S.height}`;
+    renderAll();
+    resolveUsers();
+  } catch (e) {
+    $("nodeDot").className = "dot bad"; $("liveDot").className = "dot bad";
+    $("statusMsg").textContent = "Error: " + e.message;
+    showErr("Could not read from " + toBase(rpcInput) + "\n" + e.message + "\n\nCheck the host in the RPC dialog. Browsers also need CORS enabled on the node (cors_allowed_origins in config.toml) or a reverse proxy that adds it.");
+  } finally { S.busy = false; }
+}
+function showErr(m) { const e = $("err"); e.style.display = m ? "block" : "none"; e.textContent = m; }
+
+/* ============================ usernames (L1 profile index) ============================ */
+const tried = new Set();
+let l2Input = lsGet("cw_rpc_l2") || "";
+const l2Base = () => {
+  if (l2Input.trim()) return toBase(l2Input);
+  const b = toBase(rpcInput);
+  return b.replace(/(\/\/)l1-/, "$1l2-").replace(/\bl1-/, "l2-");   // l1-xxx host -> l2-xxx host
+};
+const profName = c => {
+  if (typeof c === "string") { try { c = JSON.parse(c); } catch { return ""; } }
+  if (!c || typeof c !== "object") return "";
+  const inner = c.content && typeof c.content === "object" ? c.content : c;
+  return String(inner.username || inner.name || inner.display_name || inner.displayName || inner.handle || "").trim();
+};
+S.profileLog = { ok: 0, l1: 0, l2: 0, fail: 0, last: "" };
+async function lookupProfile(a) {
+  let pointer = "";
+  // 1) Layer 1 discovery index (has username when the L2 pointer carried one)
+  try {
+    const p = await abci("/profile/" + a);
+    if (p) { if (p.username) { S.profileLog.l1++; return p.username; } pointer = p.content_pointer || ""; }
+  } catch (e) { S.profileLog.last = "L1: " + e.message; }
+  // 2) Layer 2 profile content record
+  const keys = [...new Set([pointer, "profile:" + a].filter(Boolean))];
+  for (const k of keys) {
+    try {
+      const rec = await abci("/content/" + k, l2Base());
+      const n = profName(rec && (rec.content ?? rec.Content ?? rec));
+      if (n) { S.profileLog.l2++; return n; }
+    } catch (e) { S.profileLog.last = "L2 " + l2Base() + ": " + e.message; }
+  }
+  return "";
+}
+async function resolveUsers() {
+  const addrs = new Set();
+  S.items.forEach(e => { [e.payor, e.recipient].forEach(a => { if (/^cw[0-9a-f]{40}$/.test(a || "")) addrs.add(a); });
+    const c = e.contract; if (c) { Object.keys(c.condition_associations || {}).forEach(a => addrs.add(a)); Object.keys(c.condition_reports || {}).forEach(a => addrs.add(a)); } });
+  const todo = [...addrs].filter(a => !tried.has(a) && !S.users[a]);
+  let changed = false;
+  for (let i = 0; i < todo.length; i += 5) {
+    await Promise.all(todo.slice(i, i + 5).map(async a => {
+      tried.add(a);
+      const n = await lookupProfile(a);
+      if (n) { S.users[a] = n; changed = true; } else S.profileLog.fail++;
+    }));
+  }
+  if (changed) renderAll();
+}
+const who = a => !a ? "unbound" : /^protocol:/.test(a) ? a.replace("protocol:escrow:", "⚙ ").replace("protocol:", "⚙ ") : S.users[a] ? (/\s/.test(S.users[a]) ? S.users[a] : "@" + S.users[a]) : short(a, 6);
+
+/* ============================ derived model for contracts ============================ */
+function cmodel(c) {
+  const cons = c.consensus || {}, req = cons.required_reports || 0, got = cons.true_reports || 0;
+  const mode = cons.mode || "LEGACY_SELECTED_DRIPWALLETS", isPA = mode === "POST_ASSOCIATION_THRESHOLD";
+  const post = c.contract_post || {}, wake = c.wake_election || {}, ex = c.execution || {};
+  const settled = ["RELEASED_TO_APPROVED_RECIPIENT", "REFUNDED_TO_PAYOR", "REFUNDED_TIMEOUT_TO_PAYOR"].includes(c.status);
+  const st = [{ n: "Created", d: true }];
+  if (isPA) st.push({ n: "Post bound", d: !!post.bound });
+  st.push({ n: mode === "LEGACY_SELECTED_DRIPWALLETS" ? "Proposal" : "Condition", d: cons.result === "TRUE" || !!c.proposal_id || settled });
+  if (isPA) st.push({ n: "Wake", d: wake.height > 0 });
+  st.push({ n: "Settled", d: settled });
+  const cur = st.findIndex(s => !s.d); st.forEach((s, i) => s.cur = i === cur);
+  return { cons, req, got, mode, isPA, post, wake, ex, st, pct: req ? Math.min(100, got / req * 100) : 0 };
+}
+const stepsHtml = m => `<div class="steps">${m.st.map(s => `<div class="s ${s.d ? "done" : ""} ${s.cur ? "cur" : ""}">${esc(s.n)}</div>`).join("")}</div>`;
+
+/* ============================ rendering ============================ */
+function renderAll() { renderCats(); renderStats(); renderCards(); renderPipe(); renderTime(); renderUsers(); }
+
+function renderCats() {
+  $("cats").innerHTML = CATS.map(([k, l]) => {
+    const n = k === "all" ? S.items.length : S.items.filter(e => e.cat === k).length;
+    return `<button data-c="${k}" class="${S.cat === k ? "on" : ""}">${esc(l)}<span class="n">${n}</span></button>`;
+  }).join("");
+}
+
+function renderStats() {
+  const pend = S.items.filter(isPending), set = S.items.filter(isSettled), ref = S.items.filter(isRefunded);
+  const urgent = pend.filter(e => isUrgent(e));
+  const locked = pend.reduce((s, e) => s + big(e.balance), 0n);
+  const n = S.items.length || 1;
+  const tile = (l, v, s, col, pct, f) => `<div class="glass stat" ${f ? `data-f="${f}"` : ""}><div class="l">${l}</div><div class="v mono">${v}</div><div class="s">${s}</div><div class="meter"><i style="width:${pct}%;background:${col}"></i></div></div>`;
+  $("stats").innerHTML =
+    tile("Locked in vaults", fmt(locked), `${pend.length} active vaults`, "var(--cyan)", 80) +
+    tile("Active", pend.length, "awaiting condition, votes or credit", "var(--cyan)", Math.round(pend.length / n * 100), "pending") +
+    tile("Settled", set.length, "released to recipient / executed", "var(--green)", Math.round(set.length / n * 100), "settled") +
+    tile("Refunded", ref.length, `${ref.filter(isTimedOut).length} via timeout`, "var(--rose)", Math.round(ref.length / n * 100), "refunded") +
+    tile("Near timeout", urgent.length, urgent.length ? "⚠ ≤ 50 blocks remaining" : "no urgent countdowns", "var(--amber)", Math.min(100, urgent.length * 25), "urgent");
+}
+
+function applyFilters() {
+  const q = S.q.toLowerCase();
+  return S.items.filter(e => (S.cat === "all" || e.cat === S.cat) &&
+    (S.filter === "all" || (S.filter === "pending" && isPending(e)) || (S.filter === "settled" && isSettled(e)) || (S.filter === "refunded" && isRefunded(e)) || (S.filter === "urgent" && isUrgent(e))) &&
+    (!q || [e.title, e.id, e.payor, e.recipient, who(e.payor), who(e.recipient), e.status].join(" ").toLowerCase().includes(q)));
+}
+
+function timeoutBar(e) {
+  if (!e.timeout.enabled) return "";
+  if (isSettled(e) && !isTimedOut(e)) return "";
+  const rem = remaining(e), total = Math.max(1, e.timeout.at - (e.timeout.at - e.timeout.blocks)), elapsed = Math.max(0, e.timeout.blocks - rem);
+  const pct = isTimedOut(e) ? 100 : Math.min(100, Math.round(elapsed / Math.max(1, e.timeout.blocks) * 100));
+  const urgent = isUrgent(e), done = isTimedOut(e);
+  return `<div class="sep"><div class="between"><span class="${urgent ? "bad" : done ? "bad" : ""}">${done ? "Timed out & refunded" : urgent ? "⚠ " + rem + " blocks left" : rem + " blocks left"}</span><span class="mono sub">#${S.height}/#${e.timeout.at}</span></div><div class="pb ${urgent ? "warn" : done ? "done" : ""}"><i style="width:${pct}%"></i></div></div>`;
+}
+
+function renderCards() {
+  const list = applyFilters();
+  $("counter").textContent = `${list.length} of ${S.items.length} vaults`;
+  if (!list.length) { $("cards").innerHTML = `<div class="glass empty" style="grid-column:1/-1">${S.items.length ? "No vaults match this filter." : "No data yet — waiting for the node."}</div>`; return; }
+  $("cards").innerHTML = list.map(e => {
+    let mid = "";
+    if (e.contract) { const m = cmodel(e.contract); mid = (m.req ? `<div class="sep"><div class="between"><span>Condition ${m.got}/${m.req}</span><span class="sub">${esc(m.mode.replace(/_/g, " ").toLowerCase())}</span></div><div class="pb blue"><i style="width:${m.pct}%"></i></div></div>` : "") + stepsHtml(m); }
+    else mid = `<div class="sep between"><span class="sub">Status: <b>${esc(e.status)}</b></span><span class="mono sub">#${e.created}</span></div>`;
+    const state = isSettled(e) ? `<span class="good">✓ Settled</span>` : isTimedOut(e) ? `<span class="bad">⏳ Timed out</span>` : isRefunded(e) ? `<span class="bad">↩ Refunded</span>` : `<span class="cy">🔒 ${esc(e.status.replace(/_/g, " ").toLowerCase())}</span>`;
+    return `<div class="glass card ${S.sel === e.id ? "sel" : ""} ${isUrgent(e) ? "urgent" : ""}" data-id="${esc(e.id)}">
+      <div>
+        <div class="between" style="align-items:flex-start;gap:10px">
+          <div><h3>${esc(e.title)}</h3><div class="row sub" style="gap:6px;margin-top:2px"><span class="mono">#${e.created}</span><span class="badge c-${e.cat}">${CAT_BADGE[e.cat]}</span></div></div>
+          <div class="amt mono">${esc(fmt(e.amount))}</div>
+        </div>
+        <div class="flow"><div><small>Payor</small><b>${esc(who(e.payor))}</b></div><span class="mono sub">➔ 🔒 ➔</span><div style="text-align:right"><small>Recipient</small><b>${esc(e.recipient ? who(e.recipient) : e.recipientHint || "unbound")}</b></div></div>
+        ${mid}${timeoutBar(e)}
+      </div>
+      <div class="between sep" style="margin-top:14px"><b>${state}</b><span class="sub">Inspect ➔</span></div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- pipeline & detail ---------- */
+const kv = (k, v, mono) => `<div class="k">${esc(k)}</div><div class="v ${mono ? "mono" : ""}">${v === "" || v == null ? "—" : esc(v)}</div>`;
+
+function ring(pct, got, req) {
+  const R = 40, C = 2 * Math.PI * R, l = pct / 100 * C;
+  return `<svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="${R}" fill="none" stroke="#1e293b" stroke-width="12"/><circle cx="55" cy="55" r="${R}" fill="none" stroke="#22d3ee" stroke-width="12" stroke-linecap="round" stroke-dasharray="${l} ${C - l}" transform="rotate(-90 55 55)"/><text x="55" y="53" text-anchor="middle" font-size="20" font-weight="800">${got}/${req}</text><text x="55" y="70" text-anchor="middle" font-size="10" fill="#94a3b8">reports</text></svg>`;
+}
+
+let pipeSig = "", rawOpen = false;
+function renderPipe() {
+  const e = S.items.find(x => x.id === S.sel);
+  if (!e) { $("vPipe").innerHTML = `<div class="glass empty">Select a vault from the cards view.</div>`; pipeSig = ""; return; }
+  // Skip the redraw when nothing visible changed, so open sections, scroll and text selection survive polling.
+  const sig = S.sel + "|" + JSON.stringify(e.raw) + "|" + Object.keys(S.users).length + "|" + (e.timeout.enabled ? S.height : "");
+  if (sig === pipeSig && $("vPipe").firstChild) return;
+  pipeSig = sig;
+  // Remember the state of the raw JSON panel before it is rebuilt.
+  const oldDet = $("vPipe").querySelector("details.rawbox");
+  if (oldDet) rawOpen = oldDet.open;
+  const oldPre = oldDet && oldDet.querySelector("pre");
+  const preScroll = oldPre ? [oldPre.scrollTop, oldPre.scrollLeft] : [0, 0];
+  const pageY = window.scrollY;
+  const settled = isSettled(e), tout = isTimedOut(e), refd = isRefunded(e) && !tout, pend = isPending(e);
+  const c = e.contract, m = c ? cmodel(c) : null;
+  const outcome = (e.execAction || "").toUpperCase();
+  const relHit = settled || ["APPROVED", "TRUE"].includes(outcome);
+  const refHit = refd || ["NOT_APPROVED", "FALSE"].includes(outcome);
+  const toHit = tout;
+  const badge = settled ? `<span class="tag" style="color:#6ee7b7;border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.12)">✓ Settled</span>` : tout ? `<span class="tag" style="color:#fda4af;border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.12)">⏳ Refunded via timeout</span>` : refd ? `<span class="tag" style="color:#fca5a5;border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.12)">↩ Refunded</span>` : `<span class="tag" style="animation:blink 1.5s infinite">🔒 ${esc(e.status.replace(/_/g, " "))}</span>`;
+  const rem = remaining(e);
+
+  let html = `<div class="glass panel">
+    <div class="between" style="flex-wrap:wrap;gap:12px;border-bottom:1px solid #1e293b;padding-bottom:14px">
+      <div><div class="row" style="gap:8px"><h2 style="margin:0;font-size:18px">${esc(e.title)}</h2><span class="badge c-${e.cat}">${CAT_BADGE[e.cat]}</span></div><div class="sub" style="margin-top:3px">${esc(e.purpose)}</div></div>
+      <div>${badge}</div>
+    </div>
+    <div class="conduit">
+      <div class="node"><span class="lbl">Deposit origin (payor)</span><div class="ico">👤</div><b>${esc(who(e.payor))}</b><span class="sub mono">${esc(short(e.payor, 8))}</span><span class="tag mono" style="margin-top:8px">${esc(fmt(e.amount))}</span></div>
+      <div class="node vault"><span class="lbl cy">Escrow vault</span><div class="ico vault" style="${pend ? "" : "animation:none"}">${pend ? "🔒" : "🔓"}</div><b class="mono">${esc(fmt(e.balance))} <span class="sub">locked</span></b>
+        ${e.timeout.enabled && (pend || tout) ? `<div style="width:100%;text-align:left;margin-top:10px"><div class="between"><span class="${isUrgent(e) || tout ? "bad" : ""}">${tout ? "Timed out" : isUrgent(e) ? "⚠ expires in " + rem + " blocks" : rem + " blocks left"}</span><span class="mono sub">#${S.height}/#${e.timeout.at}</span></div><div class="pb ${isUrgent(e) ? "warn" : tout ? "done" : ""}"><i style="width:${tout ? 100 : Math.min(100, Math.round((e.timeout.blocks - rem) / Math.max(1, e.timeout.blocks) * 100))}%"></i></div><div class="sub" style="margin-top:3px">${esc(e.timeout.basis)}</div></div>` : ""}
+        ${m && m.req ? `<div style="width:100%;text-align:left;margin-top:10px"><div class="between"><span>Condition reports ${m.got}/${m.req}</span><span class="${m.got >= m.req ? "good" : "warnc"}">${m.got >= m.req ? "Threshold met ✓" : "Awaiting"}</span></div><div class="pb blue"><i style="width:${m.pct}%"></i></div></div>` : ""}
+      </div>
+      <div>
+        <div class="branch green ${relHit ? "hit" : ""}"><div><div class="sub">Branch · Release</div><b>${esc(e.recipient ? who(e.recipient) : e.recipientHint || "recipient")}</b></div>${relHit ? "<b>RELEASED ✓</b>" : ""}</div>
+        <div class="branch red ${refHit ? "hit" : ""}"><div><div class="sub">Branch · Not approved</div><b>↩ ${esc(who(e.payor))}</b></div>${refHit ? "<b>REFUNDED ✓</b>" : ""}</div>
+        <div class="branch amber ${toHit ? "hit" : ""}" style="${e.timeout.enabled || toHit ? "" : "opacity:.25"}"><div><div class="sub">Branch · Timeout</div><b>${e.timeout.enabled ? e.timeout.blocks + " blocks → payor" : "disabled"}</b></div>${toHit ? "<b>TIMED OUT ✓</b>" : ""}</div>
+      </div>
+    </div>`;
+
+  if (c) {
+    const dl = (e.deadlines || []).map(d => {
+      const left = d.at - S.height, pct = Math.min(100, Math.max(0, Math.round((d.blocks - left) / Math.max(1, d.blocks) * 100)));
+      return `<div style="margin-bottom:12px"><div class="between"><b>${esc(d.label)}</b><span class="mono ${left <= 0 ? "bad" : left <= 50 ? "warnc" : "good"}">${left > 0 ? left + " blocks left" : "passed " + (-left) + " blocks ago"}</span></div>
+        <div class="between sub"><span>${esc(d.basis)}</span><span class="mono">deadline #${d.at} · now #${S.height}</span></div><div class="pb ${left <= 0 ? "done" : left <= 50 ? "warn" : ""}"><i style="width:${pct}%"></i></div></div>`;
+    }).join("");
+    html += `<div class="box" style="margin-bottom:16px"><h4>Deadlines (block heights)</h4>${dl || `<div class="sub">No deadline for this contract: ${esc(e.noDeadline)}.</div>`}</div>
+    <div class="box" style="margin-bottom:16px"><h4>Lifecycle</h4>${stepsHtml(m)}</div>
+    <div class="two">
+      <div class="box"><h4>Identity &amp; value</h4><div class="kv">${kv("Contract ID", c.contract_id, 1)}${kv("Escrow address", c.escrow_address, 1)}${kv("Schema", (c.schema || "") + " v" + (c.version ?? ""))}${kv("Creator", who(c.creator) + "  " + short(c.creator, 6))}${kv("Payor", who(c.payor) + "  " + short(c.payor, 6))}${kv("Recipient", e.recipient ? who(e.recipient) + "  " + short(e.recipient, 6) : e.recipientHint || "—")}${kv("Amount", fmt(c.amount))}${kv("Balance", fmt(c.balance))}${kv("Created height", c.created_height)}${kv("Bound proposal", c.proposal_id, 1)}</div></div>
+      <div class="box"><h4>Consensus &amp; condition</h4><div class="row" style="gap:14px;align-items:center">${m.req ? ring(m.pct, m.got, m.req) : ""}<div class="kv" style="flex:1">${kv("Mode", m.mode)}${kv("Required", m.req)}${kv("TRUE reports", m.got)}${kv("Result", m.cons.result)}${kv("Threshold height", m.cons.threshold_height || "")}${kv("Condition ID", c.condition_id)}${kv("Condition type", (c.condition || {}).type)}</div></div></div>
+    </div>`;
+    if (m.isPA) html += `<div class="two" style="margin-top:16px">
+      <div class="box"><h4>Contract post (L2 → L1 anchored)</h4><div class="kv">${kv("Bound", m.post.bound ? "yes" : "no")}${kv("Post ID", m.post.post_id, 1)}${kv("Content pointer", m.post.content_pointer, 1)}${kv("L2 tx", m.post.l2_tx_hash, 1)}${kv("L1 pointer", m.post.l1_pointer_hash, 1)}${kv("Bind height", m.post.bind_height || "")}</div></div>
+      <div class="box"><h4>Wake election &amp; execution</h4><div class="kv">${kv("Election height", m.wake.height || "")}${kv("Closed", m.wake.closed ? "yes" : "no")}${kv("Winner wallet", m.wake.winner_wallet ? who(m.wake.winner_wallet) : "")}${kv("Winner tx", m.wake.winner_tx, 1)}${kv("Relay wallet", m.ex.wake_relay_wallet ? who(m.ex.wake_relay_wallet) : "")}${kv("Relay tx", m.ex.wake_relay_tx, 1)}${kv("Action", m.ex.action)}${kv("Exec height", m.ex.height || "")}</div></div></div>`;
+    else html += `<div class="box" style="margin-top:16px"><h4>Execution</h4><div class="kv">${kv("Action", m.ex.action)}${kv("Height", m.ex.height || "")}</div></div>`;
+
+    const assoc = objVals(c.condition_associations).filter(Boolean), reps = objVals(c.condition_reports).filter(Boolean), cands = objVals((c.wake_election || {}).candidates).filter(Boolean);
+    if (assoc.length) html += `<div class="box" style="margin-top:16px"><h4>PostAssociations (${assoc.length})</h4><table><tr><th>Wallet</th><th>Result</th><th>Height</th><th>L2 tx</th><th>Evidence</th></tr>${assoc.map(a => `<tr><td>${esc(who(a.wallet))}</td><td>${esc(a.result)}</td><td class="mono">${esc(a.height)}</td><td class="mono">${esc(short(a.l2_tx_hash, 8))}</td><td>${esc(a.evidence_ref)}</td></tr>`).join("")}</table></div>`;
+    if (reps.length) html += `<div class="box" style="margin-top:16px"><h4>Condition reports (${reps.length})</h4><table><tr><th>Wallet</th><th>Result</th><th>Height</th><th>Evidence</th></tr>${reps.map(a => `<tr><td>${esc(who(a.wallet))}</td><td>${esc(a.result)}</td><td class="mono">${esc(a.height)}</td><td>${esc(a.evidence_ref)}</td></tr>`).join("")}</table></div>`;
+    if (cands.length) html += `<div class="box" style="margin-top:16px"><h4>Wake candidates (${cands.length})</h4><table><tr><th>Wallet</th><th>Tx</th><th>Height</th></tr>${cands.map(a => `<tr><td>${esc(who(a.wallet))}</td><td class="mono">${esc(short(a.tx_hash, 8))}${a.tx_hash === m.wake.winner_tx ? " 🏆" : ""}</td><td class="mono">${esc(a.height)}</td></tr>`).join("")}</table></div>`;
+    html += `<div class="box" style="margin-top:16px"><h4>Branch rules</h4><pre>${esc(JSON.stringify(c.branches || {}, null, 2))}</pre></div>`;
+  } else if (e.gov) {
+    const g = e.gov, p = g.proposal || g, total = (p.electorate || []).length;
+    html += `<div class="two"><div class="box"><h4>Vote tally</h4><div class="kv">${kv("Yes", g.yes)}${kv("No", g.no)}${kv("Abstain", g.abstain)}${kv("Required yes", g.required_yes + " of " + total)}${kv("Outcome", g.outcome || "pending")}${kv("Final", g.final ? "yes" : "no")}</div></div>
+      <div class="box"><h4>Distribution</h4><div class="kv">${kv("Proposer", who(p.proposer))}${kv("Drip approvals", (g.drip_approvals ?? 0) + " / " + (g.drip_required ?? p.drip_wallet_threshold))}${kv("Destination", p.destination_escrow, 1)}${kv("Created", p.created_height)}${kv("Closes", p.close_height)}${kv("Executed", p.executed_height || "")}</div></div></div>`;
+  }
+  html += `<details class="box rawbox" style="margin-top:16px" ${rawOpen ? "open" : ""}><summary>Raw on-chain JSON</summary><pre class="rawpre" style="margin-top:8px">${esc(JSON.stringify(e.raw, null, 2))}</pre></details></div>`;
+  $("vPipe").innerHTML = html;
+  const det = $("vPipe").querySelector("details.rawbox");
+  det.addEventListener("toggle", () => { rawOpen = det.open; });
+  const pre = det.querySelector("pre");
+  pre.scrollTop = preScroll[0]; pre.scrollLeft = preScroll[1];
+  window.scrollTo(0, pageY);
+}
+
+/* ---------- timeout radar ---------- */
+function renderTime() {
+  const pend = S.items.filter(e => isPending(e) && e.timeout.enabled).sort((a, b) => a.timeout.at - b.timeout.at);
+  const done = S.items.filter(isTimedOut);
+  const row = e => `<div class="glass card ${isUrgent(e) ? "urgent" : ""}" data-id="${esc(e.id)}"><div class="between"><h3>${esc(e.title)}</h3><span class="amt mono">${esc(fmt(e.amount))}</span></div><div class="sub" style="margin-top:4px">${esc(e.timeout.basis)}</div>${timeoutBar(e)}</div>`;
+  $("vTime").innerHTML = `
+    <div class="glass bar" style="background:linear-gradient(90deg,rgba(15,23,42,.9),rgba(69,26,3,.4));border-color:rgba(251,191,36,.3)"><div><h2 style="margin:0;font-size:17px">Timeout radar</h2><div class="sub">Countdowns computed against the live block height</div></div><div class="row"><span class="tag" style="color:#fcd34d">Pending ${pend.length}</span><span class="tag" style="color:#fda4af">Refunded ${done.length}</span></div></div>
+    <h4>Pending timeouts</h4><div class="grid">${pend.length ? pend.map(row).join("") : `<div class="glass empty" style="grid-column:1/-1">No pending timeouts on chain</div>`}</div>
+    <h4>Refunded via timeout</h4><div class="grid">${done.length ? done.map(e => `<div class="glass card" data-id="${esc(e.id)}"><div class="between"><h3>${esc(e.title)}</h3><span class="badge c-gas">Refunded</span></div><div class="sub" style="margin-top:6px">Returned to ${esc(who(e.payor))} at height #${e.execHeight}</div></div>`).join("") : `<div class="glass empty" style="grid-column:1/-1">None yet</div>`}</div>`;
+}
+
+function renderUsers() {
+  const ent = Object.entries(S.users);
+  const L = S.profileLog;
+  const diag = `<div class="sub mono" style="margin-bottom:8px">resolved: ${L.l1} via L1 index, ${L.l2} via L2 content · not found: ${L.fail}<br>L2 node: ${esc(l2Base())}${L.last ? "<br>last error: " + esc(L.last) : ""}</div>`;
+  $("userList").innerHTML = diag + (ent.length ? ent.map(([a, n]) => `<div class="box between"><b>${esc(n)}</b><span class="mono sub">${esc(short(a, 10))}</span></div>`).join("") : `<div class="sub">No names resolved yet.</div>`);
+}
+
+/* ============================ events ============================ */
+function setView(v) {
+  S.view = v;
+  document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  $("vGrid").style.display = v === "grid" ? "grid" : "none";
+  $("vPipe").classList.toggle("hidden", v !== "pipeline");
+  $("vTime").style.display = v === "timeout" ? "grid" : "none";
+  $("vTime").classList.remove("hidden");
+}
+function select(id) { S.sel = id; pipeSig = ""; renderCards(); renderPipe(); setView("pipeline"); window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+document.addEventListener("click", ev => {
+  const t = ev.target;
+  const card = t.closest(".card[data-id]"); if (card) return select(card.dataset.id);
+  const cat = t.closest("[data-c]"); if (cat) { S.cat = cat.dataset.c; renderCats(); renderCards(); return; }
+  const st = t.closest(".stat[data-f]"); if (st) { setFilter(st.dataset.f); setView("grid"); return; }
+  const cl = t.closest("[data-close]"); if (cl) $(cl.dataset.close).classList.remove("open");
+});
+function setFilter(f) { S.filter = f; document.querySelectorAll("#filters button").forEach(b => b.classList.toggle("on", b.dataset.f === f)); renderCards(); }
+$("filters").onclick = e => { const b = e.target.closest("button"); if (b) setFilter(b.dataset.f); };
+$("views").onclick = e => { const b = e.target.closest("button"); if (b) setView(b.dataset.v); };
+$("q").oninput = e => { S.q = e.target.value.trim(); renderCards(); };
+$("btnReload").onclick = $("btnSync").onclick = () => load(true);
+$("btnUsers").onclick = () => { renderUsers(); $("mUsers").classList.add("open"); };
+$("btnRpc").onclick = () => { $("rpcIn").value = rpcInput; $("rpcL2In").value = l2Input; $("mRpc").classList.add("open"); };
+$("rpcSave").onclick = () => {
+  const v = $("rpcIn").value.trim(); if (!v) return;
+  rpcInput = v; lsSet("cw_rpc", v);
+  l2Input = $("rpcL2In").value.trim(); lsSet("cw_rpc_l2", l2Input);
+  S.profileLog = { ok: 0, l1: 0, l2: 0, fail: 0, last: "" }; $("hostLbl").textContent = hostLabel(); $("mRpc").classList.remove("open");
+  S.users = {}; tried.clear(); load(true);
+};
+document.querySelectorAll(".modal").forEach(m => m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); }));
+$("btnPoll").onclick = () => {
+  S.polling = !S.polling; clearInterval(S.timer);
+  $("btnPoll").textContent = S.polling ? "⏸ Polling (4 s)" : "▶ Polling paused";
+  $("liveDot").className = S.polling ? "dot live" : "dot";
+  if (S.polling) S.timer = setInterval(() => load(false), 4000);
+};
+const hostLabel = () => rpcInput.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+
+/* ============================ init ============================ */
+$("hostLbl").textContent = hostLabel();
+setView("grid");
+renderAll();
+S.timer = setInterval(() => load(false), 4000);
+load(true);
+</script>
+</body>
+</html>

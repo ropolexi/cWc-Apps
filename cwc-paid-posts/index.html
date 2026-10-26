@@ -196,7 +196,7 @@ function fmtDur(sec){
 }
 
 /* ---------- cWc Identity (keys stay in the identity window) ---------- */
-const DEFAULT_IDENTITY_URL = "";
+const DEFAULT_IDENTITY_URL = "https://ropolexi.github.io/cWc-Apps/identity";
 let identityUrl = DEFAULT_IDENTITY_URL;
 try{
   identityUrl = new URLSearchParams(location.search).get("identity") || localStorage.getItem("cwc-paid-identity") || DEFAULT_IDENTITY_URL;
